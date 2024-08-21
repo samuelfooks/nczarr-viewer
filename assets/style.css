@@ -1,0 +1,160 @@
+body {
+    background: linear-gradient(to bottom, #3a6186, #89253e);
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.top-container, .bottom-container {
+    display: flex;
+    width: 90%;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.left-container, .right-container {
+    flex: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-container {
+    margin-right: 20px;
+}
+#variable-dropdown, #dimension-checklist-container, #dimension-dropdowns-container {
+    width: 100%;
+    flex-grow: 1;
+    min-width: 800px; /* Ensure a minimum width */
+}
+
+.map-container {
+    position: relative;
+    height: 80vh;
+    width: 70%;
+    max-width: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+button {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 5px;
+}
+
+button:hover {
+    background-color: #555;
+}
+.Select-menu-outer {
+    background-color: #333 !important;
+    color: #fff !important;
+}
+
+.Select-option {
+    background-color: #333 !important;
+    color: #fff !important;
+}
+
+.Select-option.is-focused {
+    background-color: #555 !important;
+    color: #fff !important;
+}
+
+.Select-option.is-selected {
+    background-color: #89253e !important;
+    color: #fff !important;
+}
+#map {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+/* Container styling for dataset info */
+.dataset-info-container {
+    margin: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa; /* Light gray background for contrast */
+    border: 1px solid #dee2e6; /* Border color to define the edges */
+}
+
+/* Styling for the dataset info table */
+#dataset-info-table {
+    width: 100%;
+    font-size: 12px; /* Smaller font size */
+    color: #333; /* Darker text color for contrast */
+    background-color: #ffffff; /* White background */
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+/* Table rows */
+#dataset-info-table tr {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Table cells */
+#dataset-info-table td {
+    padding: 6px 10px; /* Padding for cells */
+    vertical-align: top; /* Align text to the top */
+}
+
+/* Dataset URL section */
+#dataset-url-div h3 {
+    font-size: 16px; /* Smaller font size for the heading */
+    color : black;
+    margin-bottom: 5px;
+}
+
+#dataset-url-div p {
+    font-size: 12px; /* Smaller font size for the URL text */
+    color: #007bff; /* Blue color for the URL text */
+    word-wrap: break-word; /* Wrap long URLs */
+}
+
+/* Error message styling */
+.dataset-error {
+    color: #dc3545; /* Red color for error messages */
+    font-size: 14px;
+    font-weight: bold;
+}
+/* Custom CSS for the Data Array Display Box */
+#data-array-display {
+    font-size: 18px; /* Increase font size for readability */
+    font-family: 'Courier New', monospace; /* Monospace font for a code-like appearance */
+    color: #e0e0e0; /* Light gray text color */
+    background-color: #2e3440; /* Dark background color (Cobalt/Zsh-like) */
+    border: 1px solid #4c566a; /* Subtle border color */
+    border-radius: 8px; /* Rounded corners */
+    padding: 20px; /* Space inside the box */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Stronger shadow for a modern look */
+    margin-top: 20px; /* Space above the box */
+    margin-bottom: 20px; /* Space below the box */
+    max-width: 600px; /* Limit the width */
+    word-wrap: break-word; /* Ensure text wraps within the box */
+    text-align: center; /* Center-align text */
+    overflow-wrap: break-word; /* Handle long words or strings */
+}
+
+#data-array-display code {
+    color: #88c0d0; /* Light blue for code-like content */
+}
+
+#data-array-display .highlight {
+    background-color: #3b4252; /* Slightly lighter background for highlights */
+    padding: 2px 4px; /* Padding for highlight background */
+    border-radius: 4px; /* Rounded corners for highlights */
+}
