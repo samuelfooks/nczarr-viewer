@@ -16,7 +16,7 @@ This application allows you to view local NetCDF files or online Zarr files.
 
 ### Running with a Local NetCDF File
 
-1. Place your NetCDF file in a folder named `myfiles`.
+1. Place your NetCDF file (ex 'Water_body_chlorophyll-a.nc') in a folder named `myfiles`.
 2. Run the following Docker command:
     ```bash
     docker run -v $(pwd)/myfiles:/app/myfiles -p 8050:8050 samfooks/zarrdashapp:latest /app/myfiles/Water_body_chlorophyll-a.nc
