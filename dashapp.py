@@ -186,7 +186,7 @@ class DimensionSelection:
             State('variable-dropdown', 'value')
         )
         def store_selected_dimensions(slider_values, dropdown_values, selected_var):
-            selected_dims = self.value_collection(selected_var, slider_values, dropdown_values)
+            selected_dims = self.store_user_selection(selected_var, slider_values, dropdown_values)
             self.dim_selections = selected_dims  # Update dim_selections
             return selected_dims
 
@@ -202,7 +202,7 @@ class DimensionSelection:
             try:
                 dim = callback_context.triggered[0]['prop_id'].split('.')[0]
                 if not dim:
-                    return "Error: dim is empty"
+                    return "Make a selection"
                 dim_dict = json.loads(dim.replace("'", "\""))
                 dim_index = dim_dict['index']
                 dim_values = self.ds[selected_var][dim_index].values
@@ -211,7 +211,9 @@ class DimensionSelection:
                 if start_idx < 0 or end_idx >= len(dim_values):
                     return "Index out of bounds"
 
-                return f"Selected range: {dim_values[start_idx]} to {dim_values[end_idx]}"
+                start_value = f"{dim_values[start_idx]:.2f}"
+                end_value = f"{dim_values[end_idx]:.2f}"
+                return f"Selected range: {start_value} to {end_value}"
             except Exception as e:
                 print(f"Error: {e}")
                 return "Error updating slider output"
@@ -257,7 +259,7 @@ class DimensionSelection:
 
         # Create marks at regular intervals
         step = max(1, len(dim_values) // 10)  # Adjust the step as needed
-        marks = {i: str(dim_values[i]) for i in range(0, len(dim_values), step)}
+        marks = {i: f"{dim_values[i]:.2f}" for i in range(0, len(dim_values), step)}
 
         return html.Div([
             html.Label(f'Select {dim} range'),
@@ -281,7 +283,7 @@ class DimensionSelection:
                 placeholder=f"Select {dim}"
             )
         ])
-    def value_collection(self, selected_var, slider_values, dropdown_values):
+    def store_user_selection(self, selected_var, slider_values, dropdown_values):
         selected_dims = {}
         ctx = callback_context
         flattened_inputs = [item for sublist in ctx.inputs_list for item in sublist]
@@ -334,7 +336,7 @@ class DataRetriever:
         values = selected_array.compute()
         return values
  
-    def retrieve_data_selection(self):
+    def retrieve_data_using_dimension_selections(self):
         try:
             data = self.open_standard_file(self.dataseturl, self.selected_var, self.user_selection)
             return data
@@ -374,7 +376,7 @@ class DataDisplay:
                         elif isinstance(value, int):
                             selection[dim] = self.ds[selected_var][dim].values[value]
                     data_retriever = DataRetriever(selected_var, selection, self.dataseturl)
-                    selected_data = data_retriever.retrieve_data_selection()
+                    selected_data = data_retriever.retrieve_data_using_dimension_selections()
 
                     print(selected_data)
                     array_values = selected_data.values
@@ -434,7 +436,7 @@ class DataPlot:
                     selection[dim] = self.ds[selected_var][dim].values[value]
             data_retriever = DataRetriever(selected_var, selection, self.dataseturl)
             
-            selected_data = data_retriever.retrieve_data_selection()
+            selected_data = data_retriever.retrieve_data_using_dimension_selections()
             for dim in selected_dims:
                 if 'lon' in dim.lower():
                     lons = selected_data[dim].values
@@ -503,20 +505,21 @@ class ResetFunctionality:
                     ""
                 )
             return dash.no_update
-def is_url(path):
-    return path.startswith('http://') or path.startswith('https://')
+def is_url(datasetPath):
+    return datasetPath.startswith('http://') or datasetPath.startswith('https://')
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the Zarr Data Viewer App with a dataset URL or local file path.')
-    parser.add_argument('path', type=str, help='The URL or local file path of the dataset to load')
+    parser.add_argument('datasetPath', type=str, help='The URL or local file path of the dataset to load')
     args = parser.parse_args()
 
-    if is_url(args.path):
-        file_path = args.path
+    if is_url(args.datasetPath):
+        file_path = args.datasetPath
     else:
-        if not os.path.isfile(args.path):
-            raise FileNotFoundError(f"The file {args.path} does not exist.")
-        file_path = args.path
+        if not os.path.isfile(args.datasetPath):
+            raise FileNotFoundError(f"The file {args.datasetPath} does not exist.")
+        file_path = args.datasetPath
 
     app = ZarrDataViewerApp(file_path)
     app.run()
+
 
