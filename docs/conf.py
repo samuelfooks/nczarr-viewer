@@ -1,12 +1,20 @@
-# docs/conf.py
+# Configuration file for the Sphinx documentation builder.
+#
+# This file only contains a selection of the most common options. For a full
+# list see the documentation:
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
 
-project = 'Zarr-NetCDF Viewer'
+# -- Project information -----------------------------------------------------
+
+project = 'dash_nczarr_viewer'
 author = 'Samuel Fooks'
 release = '0.1.0'
+
+# -- General configuration ---------------------------------------------------
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -16,6 +24,8 @@ extensions = [
 
 templates_path = ['_templates']
 exclude_patterns = []
+
+# -- Options for HTML output -------------------------------------------------
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
