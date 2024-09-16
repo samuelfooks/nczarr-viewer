@@ -18,12 +18,8 @@ formats:
   - epub
 
 # Specify the Python version and the dependencies
+# Specify the Python version and the dependencies
 python:
+  version: 3.8
   install:
     - requirements: requirements.txt
-    - method: pip
-      path: .
-    - method: apt
-      packages:
-        - libhdf5-dev
-        - libnetcdf-dev
