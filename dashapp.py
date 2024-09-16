@@ -206,13 +206,14 @@ class DimensionSelection:
                 dim_dict = json.loads(dim.replace("'", "\""))
                 dim_index = dim_dict['index']
                 dim_values = self.ds[selected_var][dim_index].values
-        
+                 # Sort the dimension values
+                sorted_dim_values = sorted(dim_values)
                 start_idx, end_idx = slider_value
                 if start_idx < 0 or end_idx >= len(dim_values):
                     return "Index out of bounds"
 
-                start_value = f"{dim_values[start_idx]:.2f}"
-                end_value = f"{dim_values[end_idx]:.2f}"
+                start_value = f"{sorted_dim_values[start_idx]:.4f}"
+                end_value = f"{sorted_dim_values[end_idx]:.4f}"
                 return f"Selected range: {start_value} to {end_value}"
             except Exception as e:
                 print(f"Error: {e}")
@@ -252,14 +253,15 @@ class DimensionSelection:
 
     def create_range_slider(self, dim, selected_var):
         dim_values = self.ds[selected_var][dim].values
+        sorted_dim_values = sorted(dim_values)
         min_val = 0
-        max_val = len(dim_values) - 1
+        max_val = len(sorted_dim_values) - 1
         range_25 = int(0.25 * max_val)
         range_75 = int(0.75 * max_val)
 
         # Create marks at regular intervals
-        step = max(1, len(dim_values) // 10)  # Adjust the step as needed
-        marks = {i: f"{dim_values[i]:.2f}" for i in range(0, len(dim_values), step)}
+        step = max(1, len(sorted_dim_values) // 10)  # Adjust the step as needed
+        marks = {i: f"{sorted_dim_values[i]:.4f}" for i in range(0, len(sorted_dim_values), step)}
 
         return html.Div([
             html.Label(f'Select {dim} range'),
@@ -295,16 +297,18 @@ class DimensionSelection:
             if slider_input:
                 dimension_name = slider_input['id']['index']
                 if slider_val and len(slider_val) > 0:
-                    start_idx = int(slider_val[0])
-                    end_idx = int(slider_val[1])
+                    sorted_dim_values = sorted(self.ds[selected_var][dimension_name].values)
+                    start_idx = slider_val[0]
+                    end_idx = slider_val[1]
                     selected_dims[dimension_name] = [start_idx, end_idx]
+
         # Process dropdown values
         for dropdown_val, dropdown_input in zip(dropdown_values, dropdown_inputs):
             if dropdown_input:
                 dimension_name = dropdown_input['id']['index']
                 if dropdown_val:
                     selected_dims[dimension_name] = dropdown_val
-
+        print(f"Selected dimensions: {selected_dims}")
         return selected_dims
 
 class DataRetriever:
@@ -373,6 +377,8 @@ class DataDisplay:
                     for dim, value in selected_dims.items():
                         if isinstance(value, list):
                             selection[dim] = self.ds[selected_var][dim].values[value[0]:value[1]]
+                        elif 'lat' in dim.lower() or 'lon' in dim.lower():
+                            selection[dim]= slice(value[0], value[1])
                         elif isinstance(value, int):
                             selection[dim] = self.ds[selected_var][dim].values[value]
                     data_retriever = DataRetriever(selected_var, selection, self.dataseturl)
@@ -430,10 +436,12 @@ class DataPlot:
         try:
             selection = {}
             for dim, value in selected_dims.items():
-                if isinstance(value, list):
-                    selection[dim] = self.ds[selected_var][dim].values[value[0]:value[1]]
-                elif isinstance(value, int):
-                    selection[dim] = self.ds[selected_var][dim].values[value]
+                    if isinstance(value, list):
+                        selection[dim] = self.ds[selected_var][dim].values[value[0]:value[1]]
+                    elif 'lat' in dim.lower() or 'lon' in dim.lower():
+                        selection[dim]= slice(value[0], value[1])
+                    elif isinstance(value, int):
+                        selection[dim] = self.ds[selected_var][dim].values[value]
             data_retriever = DataRetriever(selected_var, selection, self.dataseturl)
             
             selected_data = data_retriever.retrieve_data_using_dimension_selections()
@@ -461,9 +469,9 @@ class DataPlot:
             dim_ranges = []
             for dim, value in selected_dims.items():
                 if 'lon' in dim.lower():
-                    dim_ranges.append(f"Lon: {lons.min():.2f} to {lons.max():.2f}")
+                    dim_ranges.append(f"Lon: {lons.min():.4f} to {lons.max():.4f}")
                 elif 'lat' in dim.lower():
-                    dim_ranges.append(f"Lat: {lats.min():.2f} to {lats.max():.2f}")
+                    dim_ranges.append(f"Lat: {lats.min():.4f} to {lats.max():.4f}")
                 else:
                     dim_ranges.append(f"{dim}: {self.ds[dim].values[value]}")
 

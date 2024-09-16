@@ -1,0 +1,36 @@
+# .readthedocs.yml
+
+version: 2
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  configuration: docs/conf.py
+
+# Optionally build your docs in additional formats such as PDF and ePub
+formats:
+  - pdf
+  - epub
+
+# Optionally set the version of Python and other tools you might need
+python:
+  version: 3.8
+  install:
+    - requirements: requirements.txt
+    - method: pip
+      path: .
+    - method: apt
+      packages:
+        - libhdf5-dev
+        - libnetcdf-dev
+
+# Build documentation in the docs/ directory with MkDocs
+# mkdocs:
+#   configuration: mkdocs.yml
+
+# Optionally set the version of Node.js to use
+# nodejs:
+#   version: 12
+
+# Optionally set the version of Rust to use
+# rust:
+#   version: 1.41.0
