@@ -1,6 +1,6 @@
 Dockerfile
 ==========
 
-.. literalinclude:: ../Dockerfile
+.. literalinclude:: ../../Dockerfile
    :language: docker
    :caption: Dockerfile

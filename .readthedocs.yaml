@@ -10,7 +10,7 @@ build:
 
 # Sphinx documentation configuration
 sphinx:
-  configuration: docs/conf.py
+  configuration: docs/source/conf.py
 
 # Optionally build your docs in additional formats such as PDF and ePub
 formats:
@@ -21,6 +21,6 @@ formats:
 # Specify the Python version and the dependencies
 python:
   install:
-    - requirements: requirements.txt
+    - requirements: docs/requirements.txt
     - method: pip
       path: .

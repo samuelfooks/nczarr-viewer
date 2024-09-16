@@ -1,0 +1,20 @@
+# Use the official Python image from the Docker Hub
+FROM python:3.9-slim
+
+# Set the working directory for the app in the container
+WORKDIR /app
+
+# Install make and other necessary dependencies
+RUN apt-get update && apt-get install -y make
+
+# Install Sphinx and the Furo theme for building the docs
+RUN pip install sphinx furo
+
+# Copy the entire repository into the container
+COPY . /app/
+
+# Expose port 8000 for serving documentation
+EXPOSE 8000
+
+# Build the documentation using the Makefile and serve it
+CMD make -C docs html && cd docs/_build/html && python3 -m http.server 8000
