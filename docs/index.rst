@@ -11,6 +11,8 @@ Welcome to dash_nczarr_viewer's documentation!
    :caption: Contents:
 
    usage
+   dockerfile
+   dashapp
    api
 
 Indices and tables
