@@ -2,7 +2,13 @@
 
 version: 2
 
-# Build documentation in the docs/ directory with Sphinx
+# Build configuration
+build:
+  os: ubuntu-22.04  # Set the OS for the build environment, e.g., Ubuntu 22.04
+  tools:
+    python: "3.8"   # Specify the Python version
+
+# Sphinx documentation configuration
 sphinx:
   configuration: docs/conf.py
 
@@ -11,9 +17,8 @@ formats:
   - pdf
   - epub
 
-# Optionally set the version of Python and other tools you might need
+# Specify the Python version and the dependencies
 python:
-  version: 3.8
   install:
     - requirements: requirements.txt
     - method: pip
@@ -22,15 +27,3 @@ python:
       packages:
         - libhdf5-dev
         - libnetcdf-dev
-
-# Build documentation in the docs/ directory with MkDocs
-# mkdocs:
-#   configuration: mkdocs.yml
-
-# Optionally set the version of Node.js to use
-# nodejs:
-#   version: 12
-
-# Optionally set the version of Rust to use
-# rust:
-#   version: 1.41.0
