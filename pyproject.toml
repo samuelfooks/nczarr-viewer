@@ -17,12 +17,10 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent"
 ]
+dynamic = ["dependencies"]
 
 [project.urls]
 "Homepage" = "https://github.com/samuelfooks/dash_nczarr_viewer"
 
-[tool.setuptools]
-dynamic = ["dependencies"]
-
 [tool.setuptools.dynamic]
-dependencies = {file = "requirements.txt"}
+dependencies = {file = ["requirements.txt"]}
