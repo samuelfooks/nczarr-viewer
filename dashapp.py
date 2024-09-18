@@ -16,9 +16,12 @@ import folium
 import argparse
 from copernicusmarine.core_functions import custom_open_zarr
 import signal
-# Main App Class
+
+
 class TimeoutException(Exception):
     pass
+
+
 class ZarrDataViewerApp:
     def __init__(self, dataseturl):
         self.dataseturl = dataseturl
@@ -49,9 +52,11 @@ class ZarrDataViewerApp:
             self.data_plot.setup_callbacks()
             self.reset_functionality.setup_callbacks()
 
+
     def timeout_handler(signum, frame):
         raise TimeoutException
     
+
     def read_dataset_metadata(self, dataseturl):
         # Set the timeout handler
         signal.signal(signal.SIGALRM, self.timeout_handler)
@@ -78,6 +83,7 @@ class ZarrDataViewerApp:
 
         return None
 
+
     def run(self):
         self.app.run_server(debug=True, host='0.0.0.0')
 
@@ -86,6 +92,7 @@ class LayoutManager:
         self.dataseturl = dataseturl
         self.ds = ds
         self.app = app
+
 
     def setup_layout(self):
         if self.ds is None:
@@ -134,6 +141,7 @@ class LayoutManager:
                 dcc.Store(id='selected-dimensions-store')
             ])
     
+
     def add_dataset_info(self):
         """
         Method to add dataset information to the layout.
@@ -164,11 +172,14 @@ class VariableSelection:
         self.app = app
         self.ds = ds
 
+
     def setup_callbacks(self):
         @self.app.callback(
             Output('variable-dropdown', 'options'),
             Input('variable-dropdown', 'value')
         )
+
+
         def update_variable_options(selected_var):
             options = [{'label': var, 'value': var} for var in self.ds.data_vars]
             return options
@@ -206,16 +217,21 @@ class DimensionSelection:
              Input({'type': 'dimension-dropdown', 'index': ALL}, 'value')],
             State('variable-dropdown', 'value')
         )
+
+
         def store_selected_dimensions(slider_values, dropdown_values, selected_var):
             selected_dims = self.store_user_selection(selected_var, slider_values, dropdown_values)
             self.dim_selections = selected_dims  # Update dim_selections
             return selected_dims
+
 
         @self.app.callback(
             Output({'type': 'slider-output', 'index': MATCH}, 'children'),
             Input({'type': 'dimension-slider', 'index': MATCH}, 'value'),
             State('variable-dropdown', 'value')
         )
+
+
         def update_slider_output(slider_value, selected_var):
             if selected_var is None or slider_value is None:
                 return ""
@@ -240,6 +256,7 @@ class DimensionSelection:
                 print(f"Error: {e}")
                 return "Error updating slider output"
         
+
     def generate_dimension_checklist(self, selected_var):
         if selected_var is None:
             return []
@@ -260,6 +277,7 @@ class DimensionSelection:
             )
         ])
 
+
     def generate_dimension_controls(self, selected_dims, selected_var):
         if selected_var is None or selected_dims is None:
             return []
@@ -271,6 +289,7 @@ class DimensionSelection:
             else:
                 dimension_controls.append(self.create_dropdown(dim, selected_var))
         return dimension_controls
+
 
     def create_range_slider(self, dim, selected_var):
         dim_values = self.ds[selected_var][dim].values
@@ -297,6 +316,7 @@ class DimensionSelection:
             html.Div(id={'type': 'slider-output', 'index': dim})
         ])
 
+
     def create_dropdown(self, dim, selected_var):
         return html.Div([
             html.Label(f'Select {dim}'),
@@ -306,6 +326,8 @@ class DimensionSelection:
                 placeholder=f"Select {dim}"
             )
         ])
+    
+
     def store_user_selection(self, selected_var, slider_values, dropdown_values):
         selected_dims = {}
         ctx = callback_context
@@ -339,6 +361,7 @@ class DataRetriever:
         self.user_selection = user_selection
         self.selected_var = selected_var
     
+
     def open_standard_file(self, dataseturl, selected_var, user_selection, dataset_engine):
         try:
             ds = xr.open_dataset(dataseturl, engine=dataset_engine)
@@ -385,6 +408,7 @@ class DataDisplay:
         self.dim_select = DimensionSelection(app, ds)
         self.dataseturl = dataseturl
     
+
     def setup_callbacks(self):
         @self.app.callback(
             Output('data-array-display', 'children'),
@@ -392,7 +416,8 @@ class DataDisplay:
             State('variable-dropdown', 'value'),
             State('selected-dimensions-store', 'data')
         )
-    
+
+
         def display_data(n_clicks, selected_var, selected_dims):
             print('displaying data')
             if n_clicks > 0 and selected_var:
@@ -440,6 +465,7 @@ class DataPlot:
         self.dataseturl = dataseturl
         self.dataset_engine = dataset_engine
 
+
     def setup_callbacks(self):
         @self.app.callback(
             [Output('map', 'src'),
@@ -448,12 +474,15 @@ class DataPlot:
             State('variable-dropdown', 'value'),
             State('selected-dimensions-store', 'data')
         )
+
+
         def display_plot(n_clicks, selected_var, selected_dims):
             if n_clicks > 0 and selected_var:
                 map_src = self.plot_selected_data(selected_var, selected_dims)
                 if map_src:
                     return map_src, {'display': 'block'}
             return "", {'display': 'none'}
+
 
     def plot_selected_data(self, selected_var, selected_dims):
         if selected_var is None:
@@ -517,6 +546,7 @@ class ResetFunctionality:
         self.app = app
         self.ds = ds
 
+
     def setup_callbacks(self):
         @self.app.callback(
             Output('selected-dimensions-store', 'data', allow_duplicate=True),
@@ -527,6 +557,8 @@ class ResetFunctionality:
             Input('reset-button', 'n_clicks'),
             prevent_initial_call=True
         )
+
+
         def reset_store(n_clicks):
             if n_clicks > 0:
                 # Return an empty dictionary to clear the dimensions store
@@ -538,8 +570,12 @@ class ResetFunctionality:
                     ""
                 )
             return dash.no_update
+        
+
 def is_url(datasetPath):
     return datasetPath.startswith('http://') or datasetPath.startswith('https://')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the Zarr Data Viewer App with a dataset URL or local file path.')
     parser.add_argument('datasetPath', type=str, help='The URL or local file path of the dataset to load')
