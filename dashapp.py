@@ -15,30 +15,20 @@ import leafmap.foliumap as leafmap
 import folium
 import argparse
 from copernicusmarine.core_functions import custom_open_zarr
+import signal
 # Main App Class
-
-
+class TimeoutException(Exception):
+    pass
 class ZarrDataViewerApp:
-    """
-    Main application class for the Zarr Data Viewer.
-
-    :param dataseturl: URL or path to the dataset.
-    :type dataseturl: str
-    """
     def __init__(self, dataseturl):
-        """
-        Initializes the ZarrDataViewerApp.
-
-        :param dataseturl: URL or path to the dataset.
-        :type dataseturl: str
-        """
         self.dataseturl = dataseturl
         self.app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
         self.app.config.suppress_callback_exceptions = True
         self.ds = None  # Initialize the dataset to None
+        self.dataset_engine = None  # Initialize the engine to None
 
         # Try to read the dataset
-        self.ds = self.read_dataset_metadata(dataseturl)
+        self.ds, self.dataset_engine = self.read_dataset_metadata(dataseturl)
         
         # Set up the layout depending on whether the dataset was successfully loaded
         self.layout_manager = LayoutManager(self.app, self.ds, dataseturl)
@@ -48,8 +38,8 @@ class ZarrDataViewerApp:
         if self.ds is not None:
             self.variable_selection = VariableSelection(self.app, self.ds)
             self.dimension_selection = DimensionSelection(self.app, self.ds)
-            self.data_display = DataDisplay(self.app, self.ds, self.dataseturl)
-            self.data_plot = DataPlot(self.app, self.ds, self.dimension_selection, self.dataseturl)
+            self.data_display = DataDisplay(self.app, self.ds, self.dataseturl, self.dataset_engine)
+            self.data_plot = DataPlot(self.app, self.ds, self.dimension_selection, self.dataseturl, self.dataset_engine)
             self.reset_functionality = ResetFunctionality(self.app, self.ds)
 
             # Set up the callbacks
@@ -59,61 +49,45 @@ class ZarrDataViewerApp:
             self.data_plot.setup_callbacks()
             self.reset_functionality.setup_callbacks()
 
+    def timeout_handler(signum, frame):
+        raise TimeoutException
+    
     def read_dataset_metadata(self, dataseturl):
-        """
-        Reads the dataset metadata from the given URL or path.
+        # Set the timeout handler
+        signal.signal(signal.SIGALRM, self.timeout_handler)
+        signal.alarm(10)  # Set the timeout to 10 seconds
 
-        :param dataseturl: URL or path to the dataset.
-        :type dataseturl: str
-        :return: Loaded dataset or None if loading failed.
-        :rtype: xarray.Dataset
-        """
-        engines = ['zarr', 'netcdf4']
-        for engine in engines:
-            try:
-                ds = xr.open_dataset(dataseturl, engine=engine)
-                return ds
-            except Exception as e:
-                print(f"Failed to open file {dataseturl}: {e}")
-        print(f"Engines {engines} failed to open file {dataseturl}")
+        try:
+            if '.nc' in dataseturl:
+                dataset_engine = 'netcdf4'
+            elif '.zarr' in dataseturl:
+                dataset_engine = 'zarr'
+            else:
+                raise ValueError("Unsupported file format")
+
+            print(f"Trying to open dataset {dataseturl} with engine {dataset_engine}")
+            ds = xr.open_dataset(dataseturl, engine=dataset_engine)
+            print(f"Successfully opened dataset {dataseturl} with engine {dataset_engine}")
+            return ds, dataset_engine
+        except TimeoutException:
+            print(f"Timeout occurred while trying to open dataset {dataseturl}")
+        except Exception as e:
+            print(f"Failed to open file {dataseturl}: {e}")
+        finally:
+            signal.alarm(0)  # Disable the alarm
+
         return None
 
     def run(self):
-        """
-        Runs the Dash application server.
-        """
         self.app.run_server(debug=True, host='0.0.0.0')
 
 class LayoutManager:
-    """
-    Manages the layout of the Dash application.
-
-    :param app: Dash application instance.
-    :type app: Dash
-    :param ds: Loaded dataset.
-    :type ds: xarray.Dataset
-    :param dataseturl: URL or path to the dataset.
-    :type dataseturl: str
-    """
     def __init__(self, app, ds, dataseturl):
-        """
-        Initializes the LayoutManager.
-
-        :param app: Dash application instance.
-        :type app: Dash
-        :param ds: Loaded dataset.
-        :type ds: xarray.Dataset
-        :param dataseturl: URL or path to the dataset.
-        :type dataseturl: str
-        """
         self.dataseturl = dataseturl
         self.ds = ds
         self.app = app
 
     def setup_layout(self):
-        """
-        Sets up the layout of the Dash application.
-        """
         if self.ds is None:
             # Display an error message if dataset failed to load
             dataset_info = "Error: Failed to load dataset."
@@ -162,10 +136,7 @@ class LayoutManager:
     
     def add_dataset_info(self):
         """
-        Adds dataset information to the layout.
-
-        :return: HTML Div containing dataset information.
-        :rtype: dash.html.Div
+        Method to add dataset information to the layout.
         """
         if self.ds is None:
             return html.Div("Error: Dataset could not be loaded.", className="dataset-error")
@@ -189,86 +160,32 @@ class LayoutManager:
 
 # VariableSelection Class
 class VariableSelection:
-    """
-    Manages variable selection in the Dash application.
-
-    :param app: Dash application instance.
-    :type app: Dash
-    :param ds: Loaded dataset.
-    :type ds: xarray.Dataset
-    """
     def __init__(self, app, ds):
-        """
-        Initializes the VariableSelection.
-
-        :param app: Dash application instance.
-        :type app: Dash
-        :param ds: Loaded dataset.
-        :type ds: xarray.Dataset
-        """
         self.app = app
         self.ds = ds
 
     def setup_callbacks(self):
-        """
-        Sets up the callbacks for variable selection.
-        """
         @self.app.callback(
             Output('variable-dropdown', 'options'),
             Input('variable-dropdown', 'value')
         )
         def update_variable_options(selected_var):
-            """
-            Updates the options for the variable dropdown.
-
-            :param selected_var: Selected variable.
-            :type selected_var: str
-            :return: List of options for the variable dropdown.
-            :rtype: list
-            """
             options = [{'label': var, 'value': var} for var in self.ds.data_vars]
             return options
 
 # DimensionSelection Class
 class DimensionSelection:
-    """
-    Manages dimension selection in the Dash application.
-
-    :param app: Dash application instance.
-    :type app: Dash
-    :param ds: Loaded dataset.
-    :type ds: xarray.Dataset
-    """
     def __init__(self, app, ds):
-        """
-        Initializes the DimensionSelection.
-
-        :param app: Dash application instance.
-        :type app: Dash
-        :param ds: Loaded dataset.
-        :type ds: xarray.Dataset
-        """
         self.app = app
         self.ds = ds
         self.dim_selections = {}
 
     def setup_callbacks(self):
-        """
-        Sets up the callbacks for dimension selection.
-        """
         @self.app.callback(
             Output('dimension-checklist-container', 'children'),
             Input('variable-dropdown', 'value')
         )
         def update_dimension_checklist(selected_var):
-            """
-            Updates the dimension checklist based on the selected variable.
-
-            :param selected_var: Selected variable.
-            :type selected_var: str
-            :return: HTML Div containing the dimension checklist.
-            :rtype: dash.html.Div
-            """
             if selected_var:
                 return self.generate_dimension_checklist(selected_var)
             return ""
@@ -279,16 +196,6 @@ class DimensionSelection:
             State('variable-dropdown', 'value')
         )
         def update_dimension_controls(selected_dims, selected_var):
-            """
-            Updates the dimension controls based on the selected dimensions and variable.
-
-            :param selected_dims: Selected dimensions.
-            :type selected_dims: list
-            :param selected_var: Selected variable.
-            :type selected_var: str
-            :return: HTML Div containing the dimension controls.
-            :rtype: dash.html.Div
-            """
             if selected_var and selected_dims:
                 return self.generate_dimension_controls(selected_dims, selected_var)
             return ""
@@ -300,18 +207,6 @@ class DimensionSelection:
             State('variable-dropdown', 'value')
         )
         def store_selected_dimensions(slider_values, dropdown_values, selected_var):
-            """
-            Stores the selected dimensions in the Dash store.
-
-            :param slider_values: Values from the dimension sliders.
-            :type slider_values: list
-            :param dropdown_values: Values from the dimension dropdowns.
-            :type dropdown_values: list
-            :param selected_var: Selected variable.
-            :type selected_var: str
-            :return: Dictionary of selected dimensions.
-            :rtype: dict
-            """
             selected_dims = self.store_user_selection(selected_var, slider_values, dropdown_values)
             self.dim_selections = selected_dims  # Update dim_selections
             return selected_dims
@@ -322,16 +217,6 @@ class DimensionSelection:
             State('variable-dropdown', 'value')
         )
         def update_slider_output(slider_value, selected_var):
-            """
-            Updates the output of the dimension slider.
-
-            :param slider_value: Value from the dimension slider.
-            :type slider_value: list
-            :param selected_var: Selected variable.
-            :type selected_var: str
-            :return: String representing the selected range.
-            :rtype: str
-            """
             if selected_var is None or slider_value is None:
                 return ""
             
@@ -356,14 +241,6 @@ class DimensionSelection:
                 return "Error updating slider output"
         
     def generate_dimension_checklist(self, selected_var):
-        """
-        Generates the dimension checklist based on the selected variable.
-
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :return: HTML Div containing the dimension checklist.
-        :rtype: dash.html.Div
-        """
         if selected_var is None:
             return []
         
@@ -384,16 +261,6 @@ class DimensionSelection:
         ])
 
     def generate_dimension_controls(self, selected_dims, selected_var):
-        """
-        Generates the dimension controls based on the selected dimensions and variable.
-
-        :param selected_dims: Selected dimensions.
-        :type selected_dims: list
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :return: List of HTML Divs containing the dimension controls.
-        :rtype: list
-        """
         if selected_var is None or selected_dims is None:
             return []
 
@@ -406,16 +273,6 @@ class DimensionSelection:
         return dimension_controls
 
     def create_range_slider(self, dim, selected_var):
-        """
-        Creates a range slider for the given dimension and variable.
-
-        :param dim: Dimension name.
-        :type dim: str
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :return: HTML Div containing the range slider.
-        :rtype: dash.html.Div
-        """
         dim_values = self.ds[selected_var][dim].values
         sorted_dim_values = sorted(dim_values)
         min_val = 0
@@ -441,16 +298,6 @@ class DimensionSelection:
         ])
 
     def create_dropdown(self, dim, selected_var):
-        """
-        Creates a dropdown for the given dimension and variable.
-
-        :param dim: Dimension name.
-        :type dim: str
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :return: HTML Div containing the dropdown.
-        :rtype: dash.html.Div
-        """
         return html.Div([
             html.Label(f'Select {dim}'),
             dcc.Dropdown(
@@ -460,18 +307,6 @@ class DimensionSelection:
             )
         ])
     def store_user_selection(self, selected_var, slider_values, dropdown_values):
-        """
-        Stores the user's dimension selections.
-
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :param slider_values: Values from the dimension sliders.
-        :type slider_values: list
-        :param dropdown_values: Values from the dimension dropdowns.
-        :type dropdown_values: list
-        :return: Dictionary of selected dimensions.
-        :rtype: dict
-        """
         selected_dims = {}
         ctx = callback_context
         flattened_inputs = [item for sublist in ctx.inputs_list for item in sublist]
@@ -498,69 +333,24 @@ class DimensionSelection:
         return selected_dims
 
 class DataRetriever:
-    """
-    Retrieves data based on the selected variable and dimensions.
-
-    :param selected_var: Selected variable.
-    :type selected_var: str
-    :param user_selection: User's dimension selections.
-    :type user_selection: dict
-    :param dataseturl: URL or path to the dataset.
-    :type dataseturl: str
-    """
-    def __init__(self, selected_var, user_selection, dataseturl):
-        """
-        Initializes the DataRetriever.
-
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :param user_selection: User's dimension selections.
-        :type user_selection: dict
-        :param dataseturl: URL or path to the dataset.
-        :type dataseturl: str
-        """
+    def __init__(self, selected_var, user_selection, dataseturl, dataset_engine):
         self.dataseturl = dataseturl
+        self.dataset_engine = dataset_engine
         self.user_selection = user_selection
         self.selected_var = selected_var
     
-    def open_standard_file(self, dataseturl, selected_var, user_selection):
-        """
-        Opens a standard dataset file and retrieves the selected variable data.
+    def open_standard_file(self, dataseturl, selected_var, user_selection, dataset_engine):
+        try:
+            ds = xr.open_dataset(dataseturl, engine=dataset_engine)
+        except Exception as e:
+            print(f"Failed to open file {dataseturl} engine {dataset_engine}: {e}")
 
-        :param dataseturl: URL or path to the dataset.
-        :type dataseturl: str
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :param user_selection: User's dimension selections.
-        :type user_selection: dict
-        :return: Computed values of the selected variable.
-        :rtype: xarray.DataArray
-        """
-        engines = ['zarr', 'netcdf4']
-        for engine in engines:
-            try:
-                ds = xr.open_dataset(dataseturl, engine=engine)
-                break
-            except Exception as e:
-                print(f"Failed to open file {dataseturl} engine {engine}: {e}")
-                continue
         selected_array = ds[selected_var].sel(**user_selection)
         values = selected_array.compute()
         return values
-        
-    def open_cmems_file(self, file, selected_var, user_selection):
-        """
-        Opens a CMEMS dataset file and retrieves the selected variable data.
+    
 
-        :param file: URL or path to the dataset.
-        :type file: str
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :param user_selection: User's dimension selections.
-        :type user_selection: dict
-        :return: Computed values of the selected variable.
-        :rtype: xarray.DataArray
-        """
+    def open_cmems_file(self, file, selected_var, user_selection):
         username = 'sfooks'
         ds = custom_open_zarr.open_zarr(
             file,
@@ -570,56 +360,32 @@ class DataRetriever:
         values = selected_array.compute()
         return values
  
-    def retrieve_data_using_dimension_selections(self):
-        """
-        Retrieves data using the dimension selections.
 
-        :return: Computed values of the selected variable or None if retrieval fails.
-        :rtype: xarray.DataArray or None
-        """
+    def retrieve_data_using_dimension_selections(self):
         try:
-            data = self.open_standard_file(self.dataseturl, self.selected_var, self.user_selection)
+            data = self.open_standard_file(self.dataseturl, self.selected_var, self.user_selection, self.dataset_engine)
             return data
         except Exception as e:
             print(f"Failed to open file {self.dataseturl}: {e} trying custom open")
             try:
+                
                 data = self.open_cmems_file(self.dataseturl, self.selected_var, self.user_selection)
+                print(f"Successfully retrieved data using custom open")
                 return data
             except Exception as e:
-                print(f"Failed to open file {self.dataseturl}: {e}")
+                print(f"Failed to open file {self.dataseturl}: {e} using custom open")
                 return None    
 
+# DataDisplay Class
 class DataDisplay:
-    """
-    Manages the display of data in the Dash application.
-
-    :param app: Dash application instance.
-    :type app: Dash
-    :param ds: Loaded dataset.
-    :type ds: xarray.Dataset
-    :param dataseturl: URL or path to the dataset.
-    :type dataseturl: str
-    """
-    def __init__(self, app, ds, dataseturl):
-        """
-        Initializes the DataDisplay.
-
-        :param app: Dash application instance.
-        :type app: Dash
-        :param ds: Loaded dataset.
-        :type ds: xarray.Dataset
-        :param dataseturl: URL or path to the dataset.
-        :type dataseturl: str
-        """
+    def __init__(self, app, ds, dataseturl, dataset_engine):
         self.app = app
         self.ds = ds
+        self.dataset_engine = dataset_engine
         self.dim_select = DimensionSelection(app, ds)
         self.dataseturl = dataseturl
     
     def setup_callbacks(self):
-        """
-        Sets up the callbacks for displaying data.
-        """
         @self.app.callback(
             Output('data-array-display', 'children'),
             Input('show-data-button', 'n_clicks'),
@@ -628,18 +394,6 @@ class DataDisplay:
         )
     
         def display_data(n_clicks, selected_var, selected_dims):
-            """
-            Displays the selected data array.
-
-            :param n_clicks: Number of clicks on the show data button.
-            :type n_clicks: int
-            :param selected_var: Selected variable.
-            :type selected_var: str
-            :param selected_dims: Selected dimensions.
-            :type selected_dims: dict
-            :return: HTML Div containing the data statistics or an error message.
-            :rtype: dash.html.Div
-            """
             print('displaying data')
             if n_clicks > 0 and selected_var:
                 try:
@@ -651,7 +405,7 @@ class DataDisplay:
                             selection[dim]= slice(value[0], value[1])
                         elif isinstance(value, int):
                             selection[dim] = self.ds[selected_var][dim].values[value]
-                    data_retriever = DataRetriever(selected_var, selection, self.dataseturl)
+                    data_retriever = DataRetriever(selected_var, selection, self.dataseturl, self.dataset_engine)
                     selected_data = data_retriever.retrieve_data_using_dimension_selections()
 
                     print(selected_data)
@@ -677,41 +431,16 @@ class DataDisplay:
                     ])
             return html.Div("Show Max/Min/Mean/Med/STDEV")
 
+# DataPlot Class
 class DataPlot:
-    """
-    Manages the plotting of data in the Dash application.
-
-    :param app: Dash application instance.
-    :type app: Dash
-    :param ds: Loaded dataset.
-    :type ds: xarray.Dataset
-    :param dim_select: Dimension selection instance.
-    :type dim_select: DimensionSelection
-    :param dataseturl: URL or path to the dataset.
-    :type dataseturl: str
-    """
-    def __init__(self, app, ds, dim_select, dataseturl):
-        """
-        Initializes the DataPlot.
-
-        :param app: Dash application instance.
-        :type app: Dash
-        :param ds: Loaded dataset.
-        :type ds: xarray.Dataset
-        :param dim_select: Dimension selection instance.
-        :type dim_select: DimensionSelection
-        :param dataseturl: URL or path to the dataset.
-        :type dataseturl: str
-        """
+    def __init__(self, app, ds, dim_select, dataseturl, dataset_engine):
         self.app = app
         self.ds = ds
         self.dim_select = dim_select
         self.dataseturl = dataseturl
+        self.dataset_engine = dataset_engine
 
     def setup_callbacks(self):
-        """
-        Sets up the callbacks for displaying plots.
-        """
         @self.app.callback(
             [Output('map', 'src'),
              Output('map-container', 'style')],
@@ -720,18 +449,6 @@ class DataPlot:
             State('selected-dimensions-store', 'data')
         )
         def display_plot(n_clicks, selected_var, selected_dims):
-            """
-            Displays the plot of the selected data.
-
-            :param n_clicks: Number of clicks on the show plot button.
-            :type n_clicks: int
-            :param selected_var: Selected variable.
-            :type selected_var: str
-            :param selected_dims: Selected dimensions.
-            :type selected_dims: dict
-            :return: Image source and style for the map container.
-            :rtype: tuple
-            """
             if n_clicks > 0 and selected_var:
                 map_src = self.plot_selected_data(selected_var, selected_dims)
                 if map_src:
@@ -739,16 +456,6 @@ class DataPlot:
             return "", {'display': 'none'}
 
     def plot_selected_data(self, selected_var, selected_dims):
-        """
-        Plots the selected data.
-
-        :param selected_var: Selected variable.
-        :type selected_var: str
-        :param selected_dims: Selected dimensions.
-        :type selected_dims: dict
-        :return: Base64 encoded image string.
-        :rtype: str
-        """
         if selected_var is None:
             return ""
         try:
@@ -760,7 +467,7 @@ class DataPlot:
                         selection[dim]= slice(value[0], value[1])
                     elif isinstance(value, int):
                         selection[dim] = self.ds[selected_var][dim].values[value]
-            data_retriever = DataRetriever(selected_var, selection, self.dataseturl)
+            data_retriever = DataRetriever(selected_var, selection, self.dataseturl, self.dataset_engine)
             
             selected_data = data_retriever.retrieve_data_using_dimension_selections()
             for dim in selected_dims:
@@ -805,32 +512,12 @@ class DataPlot:
         except Exception as e:
             print(f"Error during plotting: {e}")
             return ""
-
 class ResetFunctionality:
-    """
-    Manages the reset functionality in the Dash application.
-
-    :param app: Dash application instance.
-    :type app: Dash
-    :param ds: Loaded dataset.
-    :type ds: xarray.Dataset
-    """
     def __init__(self, app, ds):
-        """
-        Initializes the ResetFunctionality.
-
-        :param app: Dash application instance.
-        :type app: Dash
-        :param ds: Loaded dataset.
-        :type ds: xarray.Dataset
-        """
         self.app = app
         self.ds = ds
 
     def setup_callbacks(self):
-        """
-        Sets up the callbacks for resetting the application state.
-        """
         @self.app.callback(
             Output('selected-dimensions-store', 'data', allow_duplicate=True),
             Output('variable-dropdown', 'value'),
@@ -841,14 +528,6 @@ class ResetFunctionality:
             prevent_initial_call=True
         )
         def reset_store(n_clicks):
-            """
-            Resets the application state.
-
-            :param n_clicks: Number of clicks on the reset button.
-            :type n_clicks: int
-            :return: Reset state values.
-            :rtype: tuple
-            """
             if n_clicks > 0:
                 # Return an empty dictionary to clear the dimensions store
                 return (
@@ -859,18 +538,8 @@ class ResetFunctionality:
                     ""
                 )
             return dash.no_update
-
 def is_url(datasetPath):
-    """
-    Checks if the given path is a URL.
-
-    :param datasetPath: Path to check.
-    :type datasetPath: str
-    :return: True if the path is a URL, False otherwise.
-    :rtype: bool
-    """
     return datasetPath.startswith('http://') or datasetPath.startswith('https://')
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the Zarr Data Viewer App with a dataset URL or local file path.')
     parser.add_argument('datasetPath', type=str, help='The URL or local file path of the dataset to load')
