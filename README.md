@@ -32,8 +32,6 @@ For example a NetCDF stored on your personal s3 storage that is publicly viewabl
 docker run -it -p 8050:8050 samfooks/zarr-netcdf-viewer:1.0.2 https://minio.lab.dive.edito.eu/oidc-YOURUSERNAME/folder/mynetcdf.nc#mode=bytes
 ```
 
-### Release Versions
+### Supported Versions
 
-1.0.0
-1.0.1
-1.0.2  stable
+- 1.0.2
