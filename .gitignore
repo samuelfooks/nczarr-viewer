@@ -1,3 +1,5 @@
 /myfiles
 /data
 *.nc
+.venv/
+.vscode/
