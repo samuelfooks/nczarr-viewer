@@ -17,10 +17,22 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent"
 ]
-dynamic = ["dependencies"]
+dependencies = [
+    "dash",
+    "dash-bootstrap-components",
+    "dash-core-components",
+    "dash-html-components",
+    "xarray",
+    "plotly",
+    "zarr",
+    "aiohttp",
+    "fsspec",
+    "cartopy",
+    "netCDF4",
+    "leafmap",
+    "folium",
+    "copernicusmarine"
+]
 
 [project.urls]
-"Homepage" = "https://github.com/samuelfooks/dash_nczarr_viewer"
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["docs/requirements.txt"]}
+Homepage = "https://github.com/samuelfooks/dash_nczarr_viewer"

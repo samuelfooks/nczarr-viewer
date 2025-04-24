@@ -16,7 +16,7 @@ import folium
 import argparse
 from copernicusmarine.core_functions import custom_open_zarr
 import signal
-
+import pyproj
 
 class TimeoutException(Exception):
     pass
@@ -71,7 +71,9 @@ class ZarrDataViewerApp:
                 raise ValueError("Unsupported file format")
 
             print(f"Trying to open dataset {dataseturl} with engine {dataset_engine}")
-            ds = xr.open_dataset(dataseturl, engine=dataset_engine)
+            time_coder = xr.coders.CFTimedeltaCoder(time_unit="ns")
+            ds = xr.open_dataset(dataseturl, decode_times=time_coder, decode_cf=True, engine=dataset_engine)
+            # ds = xr.open_dataset(dataseturl, engine=dataset_engine, decode_times=True, decode_timedelta=True, decode_cf=True)
             print(f"Successfully opened dataset {dataseturl} with engine {dataset_engine}")
             return ds, dataset_engine
         except TimeoutException:
@@ -267,7 +269,16 @@ class DimensionSelection:
         
         
         if not lat_present or not lon_present:
-            return html.Div("Error: Latitude and/or Longitude dimensions are not present in the selected variable.")
+            # show dims
+            html.Div([
+                html.Label("Select dimensions to filter:"),
+                dcc.Checklist(
+                    id='dimension-checklist',
+                    options=[{'label': dim, 'value': dim} for dim in dimensions],
+                    value=[dim for dim in dimensions if 'lat' in dim.lower() or 'lon' in dim.lower()]
+                )
+            ])
+            # return html.Div("Error: Latitude and/or Longitude dimensions are not present in the selected variable.")
         
         return html.Div([
             html.Label("Select dimensions to filter:"),
@@ -286,6 +297,13 @@ class DimensionSelection:
         dimension_controls = []
         for dim in selected_dims:
             if 'lat' in dim.lower() or 'lon' in dim.lower():
+                dimension_controls.append(self.create_range_slider(dim, selected_var))
+            
+            elif 'x' in dim.lower() or 'y' in dim.lower():
+                dimension_controls.append(self.create_range_slider(dim, selected_var))
+            # elif 'time' in dim.lower():
+            #     dimension_controls.append(self.create_range_slider(dim, selected_var))
+            elif 'depth' in dim.lower():
                 dimension_controls.append(self.create_range_slider(dim, selected_var))
             else:
                 dimension_controls.append(self.create_dropdown(dim, selected_var))
@@ -365,7 +383,7 @@ class DataRetriever:
 
     def open_standard_file(self, dataseturl, selected_var, user_selection, dataset_engine):
         try:
-            ds = xr.open_dataset(dataseturl, engine=dataset_engine)
+            ds = xr.open_dataset(dataseturl, engine=dataset_engine, decode_times=True, decode_timedelta=True, decode_cf=True)
         except Exception as e:
             print(f"Failed to open file {dataseturl} engine {dataset_engine}: {e}")
 
@@ -435,7 +453,15 @@ class DataDisplay:
                     selected_data = data_retriever.retrieve_data_using_dimension_selections()
 
                     print(selected_data)
+                    
                     array_values = selected_data.values
+                    print(array_values)
+                    # work with time values
+                    if np.issubdtype(selected_data.values.dtype, np.timedelta64):
+                        print("Converting timedelta64 to float (in hours)")
+                        array_values = selected_data.values.astype('timedelta64[h]')
+                        array_values = np.where(np.isnat(array_values), 0, array_values).astype(float)
+                    
                     max_value = float(np.nanmax(array_values))
                     min_value = float(np.nanmin(array_values))
                     mean_value = float(np.nanmean(array_values))
@@ -483,7 +509,48 @@ class DataPlot:
                 if map_src:
                     return map_src, {'display': 'block'}
             return "", {'display': 'none'}
+        
+    def get_projection_from_metadata(self, ds):
+        # 1. EPSG code from spatial_ref
+        if 'spatial_ref' in ds.attrs and 'EPSG' in ds.attrs['spatial_ref']:
+            try:
+                epsg_code = int(ds.attrs['spatial_ref'].split('EPSG:')[1])
+                return ccrs.epsg(epsg_code)
+            except Exception as e:
+                print(f"Failed to parse EPSG from spatial_ref: {e}")
 
+        # 2. Grid mapping attribute (e.g., lambert_azimuthal_equal_area)
+        if 'grid_mapping' in ds.attrs:
+            gm = ds.attrs['grid_mapping'].lower()
+            if 'lambert' in gm:
+                print('Using Lambert Azimuthal Equal Area projection')
+                return ccrs.LambertAzimuthalEqualArea()
+            elif 'mercator' in gm:
+                print('Using Mercator projection')
+                return ccrs.Mercator()
+            elif 'utm' in gm:
+                print('Using UTM projection')
+                return ccrs.UTM(zone=33, southern_hemisphere=False)
+            elif 'platecarree' in gm:
+                print('Using Plate Carree projection')
+                return ccrs.PlateCarree()
+
+        # 3. esri_pe_string (fallback using pyproj)
+        if 'esri_pe_string' in ds.attrs:
+            try:
+                proj = pyproj.CRS.from_string(ds.attrs['esri_pe_string'])
+                return ccrs.Projection(proj)  # Or transform into a compatible Cartopy CRS
+            except Exception as e:
+                print(f"Failed to create CRS from esri_pe_string: {e}")
+
+        # 4. Infer from dimensions
+        dims = list(ds.dims)
+        if any('x' in dim.lower() for dim in dims) and any('y' in dim.lower() for dim in dims):
+            return ccrs.Mercator()
+        elif any('lon' in dim.lower() for dim in dims) and any('lat' in dim.lower() for dim in dims):
+            return ccrs.PlateCarree()
+        print("Using default Plate Carree projection")
+        return ccrs.PlateCarree()
 
     def plot_selected_data(self, selected_var, selected_dims):
         if selected_var is None:
@@ -500,18 +567,42 @@ class DataPlot:
             data_retriever = DataRetriever(selected_var, selection, self.dataseturl, self.dataset_engine)
             
             selected_data = data_retriever.retrieve_data_using_dimension_selections()
+            if np.issubdtype(selected_data.values.dtype, np.timedelta64):
+                print("Converting timedelta64 to float (in hours)")
+                time_as_hours = selected_data.values.astype('timedelta64[h]').astype(float)
+                # Replace NaNs (from NaT) with -9999.0
+                data_values = np.where(np.isnan(time_as_hours), -9999.0, time_as_hours)
+            elif np.issubdtype(selected_data.values.dtype, np.datetime64):
+                print("Converting datetime64 to float (in days since start)")
+                origin = selected_data.values[0]
+                data_values = (selected_data.values - origin).astype('timedelta64[D]').astype(float)
+            else:
+                data_values = selected_data.values
+            print(data_values)
             for dim in selected_dims:
                 if 'lon' in dim.lower():
                     lons = selected_data[dim].values
                 if 'lat' in dim.lower():
                     lats = selected_data[dim].values
+                if 'x' in dim.lower():
+                    lons = selected_data[dim].values
+                if 'y' in dim.lower():
+                    lats = selected_data[dim].values
             extent = [lons.min(), lons.max(), lats.min(), lats.max()]
-
-            fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+            print(f"Extent: {extent}")
+            proj = self.get_projection_from_metadata(self.ds)
+            print(f"Projection: {proj}")
+            if proj is None:
+                proj = ccrs.PlateCarree()
+            # Create a figure and axis with the specified projection
+            plt.figure(figsize=(10, 8))
+            plt.clf()
+            fig, ax = plt.subplots(subplot_kw={'projection': proj})
             ax.coastlines()
-            ax.set_extent(extent)
+            ax.set_extent(extent, crs=proj)
+
             lon, lat = np.meshgrid(lons, lats)
-            img = ax.pcolormesh(lon, lat, selected_data.values, transform=ccrs.PlateCarree(), shading='auto')
+            img = ax.pcolormesh(lon, lat, data_values, transform=proj, shading='auto')
             
             ax.add_feature(cartopy.feature.BORDERS, linestyle=':')
             ax.add_feature(cartopy.feature.LAND, edgecolor='black')
@@ -527,6 +618,10 @@ class DataPlot:
                     dim_ranges.append(f"Lon: {lons.min():.4f} to {lons.max():.4f}")
                 elif 'lat' in dim.lower():
                     dim_ranges.append(f"Lat: {lats.min():.4f} to {lats.max():.4f}")
+                elif 'x' in dim.lower():
+                    dim_ranges.append(f"X: {lons.min():.4f} to {lons.max():.4f}")
+                elif 'y' in dim.lower():
+                    dim_ranges.append(f"Y: {lats.min():.4f} to {lats.max():.4f}")
                 else:
                     dim_ranges.append(f"{dim}: {self.ds[dim].values[value]}")
 
