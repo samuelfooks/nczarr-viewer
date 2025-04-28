@@ -11,7 +11,6 @@ class LayoutManager:
         layout = html.Div([
             html.H1("Zarr NetCDF Data Viewer"),
             html.Div([
-                dcc.Dropdown(id='variable-dropdown'),
                 html.Div(id='dimension-checklist-container')
             ]),
             html.Div([
@@ -28,7 +27,6 @@ class LayoutManager:
             html.Div(id='dataset-info-container'),
             dcc.Store(id='selected-dimensions-store')
         ])
-
         if return_layout:
             return layout
         self.app.layout = layout
@@ -43,7 +41,7 @@ class ResetFunctionality:
     def setup_callbacks(self):
         @self.app.callback(
             Output('selected-dimensions-store', 'data', allow_duplicate=True),
-            Output('variable-dropdown', 'value'),
+            Output('variable-dropdown', 'value', allow_duplicate=True),
             Output('dimension-dropdowns-container', 'children', allow_duplicate=True),
             Output('data-array-display', 'children', allow_duplicate=True),
             Output('map-container', 'children', allow_duplicate=True),

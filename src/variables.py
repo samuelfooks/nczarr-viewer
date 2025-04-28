@@ -1,16 +1,21 @@
 from dash import Output, Input
-from dash import dcc, html
 
 class VariableSelection:
-    def __init__(self, app, ds):
+    def __init__(self, app, ds_getter):
         self.app = app
-        self.ds = ds
+        self.ds_getter = ds_getter  # Pass a function to get the current dataset
 
     def setup_callbacks(self):
         @self.app.callback(
             Output('variable-dropdown', 'options'),
-            Input('variable-dropdown', 'value')
+            Output('variable-dropdown', 'value'),
+            Input('load-status', 'children')
         )
-        def update_variable_options(selected_var):
-            
-            return [{'label': var, 'value': var} for var in self.ds.data_vars]
+        def update_variable_options(_):
+            ds = self.ds_getter()
+            if ds is None:
+                return [], None
+            print('Available data_vars:', list(ds.data_vars))
+            options = [{'label': var, 'value': var} for var in ds.data_vars]
+            value = options[0]['value'] if options else None
+            return options, value
