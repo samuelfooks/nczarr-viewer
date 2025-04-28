@@ -1,20 +1,41 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.9-slim
+# Stage 1: Build dependencies and install the application
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
-# Set the working directory in the container
+# Enable bytecode compilation and set link mode to copy
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0
+
 WORKDIR /app
 
-# Copy the requirements.txt file into the container
-COPY requirements.txt requirements.txt
+# Copy dependency files first to leverage Docker layer caching
+COPY pyproject.toml uv.lock ./
 
-# Install the Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies without the project code
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --no-dev
 
-# Copy the rest of the application code into the container
+# Copy the rest of the application code
 COPY . .
 
-# Expose the port the app runs on
+# Install the application into the virtual environment
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+# Stage 2: Create a minimal runtime image
+FROM python:3.12-slim-bookworm
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the virtual environment and application code from the builder stage
+COPY --from=builder /app /app
+
+# Update PATH to use the virtual environment's binaries
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Expose the application's port
 EXPOSE 8050
 
-# Run the application
-ENTRYPOINT ["python", "-u", "dashapp.py"]
+# Define the default command to run the application
+ENTRYPOINT ["python", "-u", "src/zarr_data_viewer.py"]
