@@ -31,7 +31,8 @@ dependencies = [
     "netCDF4",
     "leafmap",
     "folium",
-    "copernicusmarine"
+    "copernicusmarine",
+    "pyproj>=3.7.1",
 ]
 
 [project.urls]

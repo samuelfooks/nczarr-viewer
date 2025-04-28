@@ -25,6 +25,7 @@ class ZarrDataViewerApp:
             dbc.Row([
                 dbc.Col(html.H1("Zarr/NetCDF Data Viewer", className="text-center mb-4"), width=12)
             ]),
+            # Top row: Load Dataset and Variable Selection side by side
             dbc.Row([
                 dbc.Col([
                     dbc.Card([
@@ -34,44 +35,69 @@ class ZarrDataViewerApp:
                             html.Br(),
                             html.Br(),
                             dbc.Button('Load Dataset', id='load-dataset-button', color='primary', n_clicks=0, className='mb-2'),
-                            html.Div(id='load-status'),
+                            dcc.Loading(html.Div(id='load-status'), type='default'),
                         ])
                     ], className='mb-3'),
+                ], width=6),
+                dbc.Col([
                     dbc.Card([
                         dbc.CardHeader("Variable Selection"),
                         dbc.CardBody([
-                            dcc.Dropdown(id='variable-dropdown'),
+                            dcc.Dropdown(id='variable-dropdown', style={'width': '100%'}),
                         ])
                     ], className='mb-3'),
+                ], width=6),
+            ]),
+            # Second row: Dimension Selection
+            dbc.Row([
+                dbc.Col([
                     dbc.Card([
                         dbc.CardHeader("Dimension Selection"),
                         dbc.CardBody([
                             html.Div(id='dimension-checklist-container'),
                             html.Div(id='dimension-dropdowns-container'),
                         ])
-                    ]),
-                ], width=4),
+                    ], className='mb-3'),
+                ], width=12),
+            ]),
+            # Third row: Select Data (filter and button)
+            dbc.Row([
                 dbc.Col([
                     dbc.Card([
-                        dbc.CardHeader("Quick Statistics"),
+                        dbc.CardHeader("Select Data"),
                         dbc.CardBody([
                             html.Div([
                                 html.Label("Data Filter (Min/Max):", className="mb-1"),
                                 dbc.Input(id='data-filter-min', type='number', placeholder='Min value', style={'width': '45%', 'display': 'inline-block', 'marginRight': '10px'}),
                                 dbc.Input(id='data-filter-max', type='number', placeholder='Max value', style={'width': '45%', 'display': 'inline-block'}),
                             ], className='mb-2'),
-                            dcc.Loading(html.Div(id='data-array-display'), type='circle'),
-                            dbc.Button('Max/Min/Mean/Med/STDEV', id='show-data-button', color='info', n_clicks=0, className='mt-2'),
+                            dbc.Button('Show Data Quick Stats (Max/Min/Med/Stdev)', id='show-data-button', color='info', n_clicks=0, className='mt-2'),
                         ])
                     ], className='mb-3'),
+                ], width=12),
+            ]),
+            # Fourth row: Quick Stats
+            dbc.Row([
+                dbc.Col([
                     dbc.Card([
-                        dbc.CardHeader("Map Plot"),
+                        dbc.CardHeader("Quick Stats (Max/Min/Mean/Med/STDEV)"),
                         dbc.CardBody([
-                            html.Div([
-                                html.Label("Color Scale (Min/Max):", className="mb-1"),
-                                dbc.Input(id='color-min', type='number', placeholder='Color min', style={'width': '45%', 'display': 'inline-block', 'marginRight': '10px'}),
-                                dbc.Input(id='color-max', type='number', placeholder='Color max', style={'width': '45%', 'display': 'inline-block'}),
-                            ], className='mb-2'),
+                            dcc.Loading(html.Div(id='data-array-display'), type='circle'),
+                        ])
+                    ], className='mb-3'),
+                ], width=12),
+            ]),
+            # Fifth row: Plot Selected Data
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardHeader("Plot Selected Data"),
+                        dbc.CardBody([
+                            # html.Div([
+                            #     html.Label("Color Scale (Min/Max):", className="mb-1"),
+                            #     dbc.Input(id='color-min', type='number', placeholder='Color min', style={'width': '45%', 'display': 'inline-block', 'marginRight': '10px'}),
+                            #     dbc.Input(id='color-max', type='number', placeholder='Color max', style={'width': '45%', 'display': 'inline-block'}),
+                            # ], className='mb-2'),
                             dcc.Loading(html.Div([
                                 html.Div(id='map-container', children=[html.Img(id='map', style={'width': '100%', 'height': 'auto'})]),
                             ]), type='circle'),
@@ -79,8 +105,13 @@ class ZarrDataViewerApp:
                         ])
                     ]),
                     dbc.Button('Reset', id='reset-button', color='secondary', n_clicks=0, className='mt-3'),
+                ], width=12),
+            ]),
+            # Metadata row: full width at the bottom
+            dbc.Row([
+                dbc.Col([
                     html.Div(id='dataset-info-container', className='mt-3'),
-                ], width=8),
+                ], width=12),
             ]),
             dcc.Store(id='selected-dimensions-store'),
             html.Div(id='debug-output')
@@ -100,22 +131,77 @@ class ZarrDataViewerApp:
 
         self.setup_callbacks()
 
+    def get_metadata_summary(self):
+        if self.ds is None:
+            return "No dataset loaded."
+        try:
+            dims = self.ds.dims.items()
+            vars = self.ds.variables.keys()
+            attrs = self.ds.attrs.items()
+            from dash import callback_context
+            selected_var = None
+            try:
+                ctx = callback_context
+                if ctx and ctx.states and 'variable-dropdown.value' in ctx.states:
+                    selected_var = ctx.states['variable-dropdown.value']
+            except Exception:
+                pass
+            var_proj_info = []
+            if selected_var and selected_var in self.ds.data_vars:
+                var_attrs = self.ds[selected_var].attrs
+                if var_attrs:
+                    var_proj_info.append(html.Tr([
+                        html.Td("Variable Attributes:"),
+                        html.Td(html.Ul([
+                            html.Li([
+                                html.B(str(k)), ": ", str(v)
+                            ]) for k, v in var_attrs.items()
+                        ]))
+                    ]))
+            return html.Div([
+                html.H5("Dataset Metadata", style={"marginTop": "10px"}),
+                html.Table([
+                    html.Tbody([
+                        html.Tr([
+                            html.Td("Dimensions:"),
+                            html.Td(html.Ul([html.Li(f"{k}: {v}") for k, v in dims]))
+                        ]),
+                        html.Tr([
+                            html.Td("Variables:"),
+                            html.Td(html.Ul([html.Li(var) for var in vars]))
+                        ]),
+                        html.Tr([
+                            html.Td("Attributes:"),
+                            html.Td(html.Ul([
+                                html.Li([
+                                    html.B(str(k)), ": ", str(v)
+                                ]) for k, v in attrs
+                            ]))
+                        ]),
+                        *var_proj_info
+                    ])
+                ], style={"width": "100%", "fontSize": "13px", "color": "#222", "background": "#fff", "borderRadius": "6px", "padding": "8px"})
+            ], className="dataset-info-container")
+        except Exception as e:
+            return f"Error reading metadata: {e}"
+
     def setup_callbacks(self):
         @self.app.callback(
-            Output('load-status', 'children'),
+            [Output('load-status', 'children'),
+             Output('dataset-info-container', 'children')],
             Input('load-dataset-button', 'n_clicks'),
             State('dataset-url-input', 'value'),
             prevent_initial_call=True
         )
         def load_dataset(n_clicks, url):
             if not url:
-                return "Please provide a valid dataset URL or path."
+                return "Please provide a valid dataset URL or path.", dash.no_update
+            # Show loading spinner automatically via dcc.Loading
             self.dataseturl = url
             self.ds, self.dataset_engine = self.read_dataset_metadata(url)
             if self.ds is None:
-                return f"Failed to load dataset from {url}"
-            # Optionally update dataset-info-container or other cards here
-            return f"Successfully loaded dataset from {url}"
+                return f"Failed to load dataset from {url}", dash.no_update
+            return f"Successfully loaded dataset from {url}", self.get_metadata_summary()
 
     def read_dataset_metadata(self, dataseturl):
         try:
@@ -139,3 +225,4 @@ class ZarrDataViewerApp:
 if __name__ == '__main__':
     app = ZarrDataViewerApp()
     app.run()
+

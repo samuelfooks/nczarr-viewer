@@ -1,7 +1,7 @@
 # dimension_selection.py
 from dash import dcc, html, callback_context
 from dash.dependencies import Input, Output, State, ALL, MATCH
-from pyproj import Transformer
+import pyproj
 import json
 
 class DimensionSelection:
@@ -20,22 +20,6 @@ class DimensionSelection:
             if selected_var and ds is not None:
                 return self.generate_dimension_checklist(ds, selected_var)
             return ""
-
-        # The following callback is not needed and causes extra dropdowns to appear, so it is commented out.
-        # @self.app.callback(
-        #     Output('lat-dim-dropdown', 'options'),
-        #     Output('lat-dim-dropdown', 'style'),
-        #     Output('lon-dim-dropdown', 'options'),
-        #     Output('lon-dim-dropdown', 'style'),
-        #     Input('variable-dropdown', 'value')
-        # )
-        # def update_lat_lon_dropdowns(selected_var):
-        #     if selected_var is None:
-        #         return [], {'display': 'none'}, [], {'display': 'none'}
-        #     ds = self.ds_getter()
-        #     dims = ds[selected_var].dims
-        #     options = [{'label': d, 'value': d} for d in dims]
-        #     return options, {'display': 'block'}, options, {'display': 'block'}
 
         @self.app.callback(
             Output('dimension-dropdowns-container', 'children'),
@@ -67,13 +51,32 @@ class DimensionSelection:
                 dim_lower = dim.lower()
                 if any(key in dim_lower for key in ['lat', 'lon', 'x', 'y']):
                     if slider_idx < len(slider_values) and slider_values[slider_idx] is not None:
-                        selected_dims[dim] = slider_values[slider_idx]
+                        val = slider_values[slider_idx]
+                        selected_dims[dim] = val
                     slider_idx += 1
                 elif any(key in dim_lower for key in ['depth', 'time']):
                     if dropdown_idx < len(dropdown_values) and dropdown_values[dropdown_idx] is not None:
-                        selected_dims[dim] = dropdown_values[dropdown_idx]
+                        val = dropdown_values[dropdown_idx]
+                        selected_dims[dim] = val
                     dropdown_idx += 1
             return selected_dims
+
+        @self.app.callback(
+            Output({'type': 'dim-control-widget', 'index': MATCH}, 'children'),
+            Input({'type': 'dim-control-type', 'index': MATCH}, 'value'),
+            State('variable-dropdown', 'value'),
+            State('dimension-checklist', 'value'),
+            State({'type': 'dim-control-type', 'index': MATCH}, 'id'),
+        )
+        def render_dim_control(control_type, selected_var, checked_dims, id_dict):
+            ds = self.ds_getter()
+            dim = id_dict['index']
+            if not selected_var or not checked_dims or ds is None:
+                return None
+            if control_type == 'slider':
+                return self.create_range_slider(ds, dim, selected_var)
+            else:
+                return self.create_dropdown(ds, dim, selected_var)
 
     def generate_dimension_checklist(self, ds, selected_var):
         if selected_var is None:
@@ -84,7 +87,7 @@ class DimensionSelection:
             dcc.Checklist(
                 id='dimension-checklist',
                 options=[{'label': dim, 'value': dim} for dim in dimensions],
-                value=[dim for dim in dimensions if 'lat' in dim.lower() or 'lon' in dim.lower() or 'x' in dim.lower() or 'y' in dim.lower() or 'depth' in dim.lower()]
+                value=list(dimensions)
             )
         ])
 
@@ -92,20 +95,27 @@ class DimensionSelection:
         if selected_var is None or selected_dims is None:
             return []
         dimension_controls = []
-        # Only create one control per dimension, and never duplicate
         for dim in selected_dims:
             dim_lower = dim.lower()
-            if any(key in dim_lower for key in ['lat', 'lon', 'x', 'y']):
-                dimension_controls.append(self.create_range_slider(ds, dim, selected_var))
-            elif any(key in dim_lower for key in ['depth', 'time']):
-                dimension_controls.append(self.create_dropdown(ds, dim, selected_var))
-            else:
-                # For other dimensions, create a dropdown
-                dimension_controls.append(self.create_dropdown(ds, dim, selected_var))
-            # Do not create dropdowns for other dims unless you really have non-spatial, non-time dims
+            controls = [
+                html.Label(f"{dim} control type:"),
+                dcc.RadioItems(
+                    id={'type': 'dim-control-type', 'index': dim},
+                    options=[
+                        {'label': 'Slider', 'value': 'slider'},
+                        {'label': 'Dropdown', 'value': 'dropdown'}
+                    ],
+                    value='slider' if ds[selected_var][dim].size > 10 else 'dropdown',
+                    inline=True,
+                    style={'marginBottom': '8px'}
+                ),
+                html.Div(id={'type': 'dim-control-widget', 'index': dim})
+            ]
+            dimension_controls.append(html.Div(controls, style={'marginBottom': '16px'}))
         return dimension_controls
 
     def create_range_slider(self, ds, dim, selected_var):
+        # If x/y, try to convert to lon/lat using grid mapping or spatial_ref
         dim_values = ds[selected_var][dim].values
         sorted_dim_values = sorted(dim_values)
         min_val = 0
@@ -113,16 +123,30 @@ class DimensionSelection:
         range_25 = int(0.25 * max_val)
         range_75 = int(0.75 * max_val)
         step = max(1, len(sorted_dim_values) // 10)
-        if dim.lower() == 'x':
-            print('converting x to lon')
-            transformer = Transformer.from_crs("EPSG:3035", "EPSG:4326", always_xy=True)
-            marks = {i: f"{transformer.transform(sorted_dim_values[i], 0)[0]:.2f}°" for i in range(0, len(sorted_dim_values), step)}
-        elif dim.lower() == 'y':
-            print('converting y to lat')
-            transformer = Transformer.from_crs("EPSG:3035", "EPSG:4326", always_xy=True)
-            marks = {i: f"{transformer.transform(0, sorted_dim_values[i])[1]:.2f}°" for i in range(0, len(sorted_dim_values), step)}
+        def format_mark(val):
+            try:
+                return f"{float(val):.4f}"
+            except (ValueError, TypeError):
+                return str(val)
+        if dim.lower() == 'x' and 'grid_mapping' in ds[selected_var].attrs:
+            if 'lambert_azimuthal' in ds[selected_var].attrs['grid_mapping']:
+                print('converting x to lon')
+                transformer = pyproj.Transformer.from_crs("EPSG:3035", "EPSG:4326", always_xy=True)
+                marks = {i: f"{transformer.transform(sorted_dim_values[i], 0)[0]:.2f}°" for i in range(0, len(sorted_dim_values), step)}
+            else:
+                print(f"no conversion for {ds[selected_var].attrs['grid_mapping']}")
+                marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
+        elif dim.lower() == 'y' and 'grid_mapping' in ds[selected_var].attrs:
+            if 'lambert_azimuthal' in ds[selected_var].attrs['grid_mapping']:
+                print('converting y to lat')
+                transformer = pyproj.Transformer.from_crs("EPSG:3035", "EPSG:4326", always_xy=True)
+                marks = {i: f"{transformer.transform(0, sorted_dim_values[i])[1]:.2f}°" for i in range(0, len(sorted_dim_values), step)}
+            else:
+                print(f"no conversion for {ds[selected_var].attrs['grid_mapping']}")
+                marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
         else:
-            marks = {i: f"{sorted_dim_values[i]:.4f}" for i in range(0, len(sorted_dim_values), step)}
+            marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
+        
         return html.Div([
             html.Label(f'Select {dim} range'),
             dcc.RangeSlider(
