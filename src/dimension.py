@@ -81,13 +81,14 @@ class DimensionSelection:
     def generate_dimension_checklist(self, ds, selected_var):
         if selected_var is None:
             return []
-        dimensions = ds[selected_var].dims
+        # Use .sizes for mapping from dimension name to length (future-proof)
+        dimensions = list(ds[selected_var].sizes.keys())
         return html.Div([
             html.Label("Select dimensions to filter:"),
             dcc.Checklist(
                 id='dimension-checklist',
                 options=[{'label': dim, 'value': dim} for dim in dimensions],
-                value=list(dimensions)
+                value=dimensions
             )
         ])
 
@@ -115,7 +116,6 @@ class DimensionSelection:
         return dimension_controls
 
     def create_range_slider(self, ds, dim, selected_var):
-        # If x/y, try to convert to lon/lat using grid mapping or spatial_ref
         dim_values = ds[selected_var][dim].values
         sorted_dim_values = sorted(dim_values)
         min_val = 0
@@ -128,25 +128,34 @@ class DimensionSelection:
                 return f"{float(val):.4f}"
             except (ValueError, TypeError):
                 return str(val)
-        if dim.lower() == 'x' and 'grid_mapping' in ds[selected_var].attrs:
-            if 'lambert_azimuthal' in ds[selected_var].attrs['grid_mapping']:
-                print('converting x to lon')
-                transformer = pyproj.Transformer.from_crs("EPSG:3035", "EPSG:4326", always_xy=True)
+        marks = None
+        grid_mapping = ds[selected_var].attrs.get('grid_mapping')
+        crs = None
+        if grid_mapping and grid_mapping in ds:
+            gm_var = ds[grid_mapping]
+            try:
+                # Try to construct a pyproj CRS from grid mapping attributes
+                crs = pyproj.CRS.from_cf(gm_var.attrs)
+            except Exception as e:
+                print(f"Could not parse grid mapping CRS: {e}")
+        if dim.lower() == 'x' and crs is not None:
+            try:
+                # Assume y=0 for x axis
+                transformer = pyproj.Transformer.from_crs(crs, 4326, always_xy=True)
                 marks = {i: f"{transformer.transform(sorted_dim_values[i], 0)[0]:.2f}°" for i in range(0, len(sorted_dim_values), step)}
-            else:
-                print(f"no conversion for {ds[selected_var].attrs['grid_mapping']}")
+            except Exception as e:
+                print(f"CRS conversion error for x: {e}")
                 marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
-        elif dim.lower() == 'y' and 'grid_mapping' in ds[selected_var].attrs:
-            if 'lambert_azimuthal' in ds[selected_var].attrs['grid_mapping']:
-                print('converting y to lat')
-                transformer = pyproj.Transformer.from_crs("EPSG:3035", "EPSG:4326", always_xy=True)
+        elif dim.lower() == 'y' and crs is not None:
+            try:
+                # Assume x=0 for y axis
+                transformer = pyproj.Transformer.from_crs(crs, 4326, always_xy=True)
                 marks = {i: f"{transformer.transform(0, sorted_dim_values[i])[1]:.2f}°" for i in range(0, len(sorted_dim_values), step)}
-            else:
-                print(f"no conversion for {ds[selected_var].attrs['grid_mapping']}")
+            except Exception as e:
+                print(f"CRS conversion error for y: {e}")
                 marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
         else:
             marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
-        
         return html.Div([
             html.Label(f'Select {dim} range'),
             dcc.RangeSlider(

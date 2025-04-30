@@ -113,6 +113,17 @@ class ZarrDataViewerApp:
                     html.Div(id='dataset-info-container', className='mt-3'),
                 ], width=12),
             ]),
+            # Add a card for variable metadata display
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardHeader("Variable Metadata"),
+                        dbc.CardBody([
+                            html.Div(id='variable-metadata-container')
+                        ])
+                    ], className='mb-3'),
+                ], width=12),
+            ]),
             dcc.Store(id='selected-dimensions-store'),
             html.Div(id='debug-output')
         ], fluid=True)
@@ -130,58 +141,78 @@ class ZarrDataViewerApp:
         self.reset_functionality.setup_callbacks()
 
         self.setup_callbacks()
+        self.update_variable_dropdown()
+        self.setup_variable_metadata_callback()
+
+    def update_variable_dropdown(self):
+        # Update the variable dropdown to list all data variables
+        if self.ds is not None:
+            from dash import callback_context
+            options = [
+                {"label": f"{var} ({self.ds[var].attrs.get('long_name', var)})", "value": var}
+                for var in self.ds.data_vars.keys()
+            ]
+            self.app.callback_map['variable-dropdown.value']['inputs'][0]['options'] = options
 
     def get_metadata_summary(self):
         if self.ds is None:
             return "No dataset loaded."
         try:
+            vars = self.ds.data_vars.keys()
             dims = self.ds.dims.items()
-            vars = self.ds.variables.keys()
             attrs = self.ds.attrs.items()
-            from dash import callback_context
-            selected_var = None
-            try:
-                ctx = callback_context
-                if ctx and ctx.states and 'variable-dropdown.value' in ctx.states:
-                    selected_var = ctx.states['variable-dropdown.value']
-            except Exception:
-                pass
-            var_proj_info = []
-            if selected_var and selected_var in self.ds.data_vars:
-                var_attrs = self.ds[selected_var].attrs
-                if var_attrs:
-                    var_proj_info.append(html.Tr([
-                        html.Td("Variable Attributes:"),
-                        html.Td(html.Ul([
-                            html.Li([
-                                html.B(str(k)), ": ", str(v)
-                            ]) for k, v in var_attrs.items()
-                        ]))
+            # Build a table of variables with their dimensions and CF attributes
+            var_rows = []
+            for var in vars:
+                v = self.ds[var]
+                dims_str = ', '.join([f"{d} ({v.sizes[d]})" for d in v.dims])
+                long_name = v.attrs.get('long_name', '-')
+                standard_name = v.attrs.get('standard_name', '-')
+                grid_mapping = v.attrs.get('grid_mapping', '-')
+                var_rows.append(html.Tr([
+                    html.Td(var),
+                    html.Td(dims_str),
+                    html.Td(long_name),
+                    html.Td(standard_name),
+                    html.Td(grid_mapping)
+                ]))
+            # If grid mapping variable exists, show its attributes
+            grid_mapping_info = []
+            for var in vars:
+                v = self.ds[var]
+                grid_mapping_name = v.attrs.get('grid_mapping')
+                if grid_mapping_name and grid_mapping_name in self.ds:
+                    gm_var = self.ds[grid_mapping_name]
+                    grid_mapping_info.append(html.Div([
+                        html.H6(f"Grid Mapping: {grid_mapping_name}"),
+                        html.Ul([
+                            html.Li(f"{k}: {v}") for k, v in gm_var.attrs.items()
+                        ])
                     ]))
+            # Make dataset metadata div much neater and more readable
             return html.Div([
-                html.H5("Dataset Metadata", style={"marginTop": "10px"}),
+                html.H5("Dataset Metadata (CF Conventions)", style={"marginTop": "10px", "color": "#222"}),
+                html.Table([
+                    html.Thead(html.Tr([
+                        html.Th("Variable"),
+                        html.Th("Dimensions"),
+                        html.Th("long_name"),
+                        html.Th("standard_name"),
+                        html.Th("grid_mapping")
+                    ])),
+                    html.Tbody(var_rows)
+                ], id="dataset-info-table", style={"width": "100%", "fontSize": "13px", "color": "#222", "background": "#fff", "borderRadius": "6px", "padding": "8px", "marginBottom": "16px"}),
+                html.H6("Global Attributes", style={"color": "#222", "marginTop": "12px"}),
                 html.Table([
                     html.Tbody([
                         html.Tr([
-                            html.Td("Dimensions:"),
-                            html.Td(html.Ul([html.Li(f"{k}: {v}") for k, v in dims]))
-                        ]),
-                        html.Tr([
-                            html.Td("Variables:"),
-                            html.Td(html.Ul([html.Li(var) for var in vars]))
-                        ]),
-                        html.Tr([
-                            html.Td("Attributes:"),
-                            html.Td(html.Ul([
-                                html.Li([
-                                    html.B(str(k)), ": ", str(v)
-                                ]) for k, v in attrs
-                            ]))
-                        ]),
-                        *var_proj_info
+                            html.Td(html.B(str(k)), style={"paddingRight": "8px"}),
+                            html.Td(str(v))
+                        ]) for k, v in attrs
                     ])
-                ], style={"width": "100%", "fontSize": "13px", "color": "#222", "background": "#fff", "borderRadius": "6px", "padding": "8px"})
-            ], className="dataset-info-container")
+                ], style={"fontSize": "13px", "background": "#f8f9fa", "borderRadius": "6px", "padding": "8px", "width": "auto"}),
+                *grid_mapping_info
+            ], className="dataset-info-container", style={"background": "#fff", "color": "#222", "borderRadius": "8px", "padding": "16px", "marginBottom": "16px", "boxShadow": "0 2px 8px rgba(0,0,0,0.04)"})
         except Exception as e:
             return f"Error reading metadata: {e}"
 
@@ -218,6 +249,66 @@ class ZarrDataViewerApp:
         except Exception as e:
             print(f"Error opening dataset: {e}")
             return None, None
+
+    def setup_variable_metadata_callback(self):
+        @self.app.callback(
+            Output('variable-metadata-container', 'children'),
+            Input('variable-dropdown', 'value')
+        )
+        def update_variable_metadata(selected_var):
+            ds = self.ds
+            if ds is None or not selected_var or selected_var not in ds:
+                return "No variable selected."
+            v = ds[selected_var]
+            # Attributes (show all, including long_name, units, etc.)
+            attr_items = []
+            for k, vv in v.attrs.items():
+                attr_items.append(html.Tr([
+                    html.Td(str(k), style={"fontWeight": "bold", "paddingRight": "8px"}),
+                    html.Td(str(vv))
+                ]))
+            attr_table = html.Table([
+                html.Tbody(attr_items)
+            ], style={"fontSize": "14px", "marginBottom": "12px", "background": "#f8f9fa", "borderRadius": "6px", "padding": "8px", "width": "auto"})
+            # Dimensions (use .sizes for mapping from name to length)
+            dims = v.dims
+            dim_items = [html.Li(f"{d}: {v.sizes[d]}") for d in dims]
+            # Coordinates (show preview values, handle loading errors, only load a small slice)
+            coord_items = []
+            for c in v.coords:
+                try:
+                    arr = v.coords[c].isel({d: slice(0, 5) for d in v.coords[c].dims}).values
+                    preview = ', '.join([str(arr[i]) for i in range(min(5, arr.size))])
+                    if v.coords[c].sizes and list(v.coords[c].sizes.values())[0] > 5:
+                        preview += ', ...'
+                    coord_items.append(html.Li([
+                        html.B(c), f": [{preview}] (size={v.coords[c].sizes[list(v.coords[c].sizes.keys())[0]]})"
+                    ]))
+                except Exception as e:
+                    coord_items.append(html.Li([
+                        html.B(c), f": [Error loading values: {e}]"
+                    ]))
+            # Grid mapping
+            grid_mapping_name = v.attrs.get('grid_mapping')
+            grid_mapping_info = None
+            if grid_mapping_name and grid_mapping_name in ds:
+                gm_var = ds[grid_mapping_name]
+                grid_mapping_info = html.Div([
+                    html.H6(f"Grid Mapping: {grid_mapping_name}"),
+                    html.Ul([
+                        html.Li(f"{k}: {vv}") for k, vv in gm_var.attrs.items()
+                    ])
+                ])
+            return html.Div([
+                html.H5(f"Variable: {selected_var}"),
+                html.H6("Attributes:"),
+                attr_table,
+                html.H6("Dimensions:"),
+                html.Ul(dim_items),
+                html.H6("Coordinates (preview):"),
+                html.Ul(coord_items),
+                grid_mapping_info if grid_mapping_info else None
+            ], style={"background": "#fff", "color": "#222", "borderRadius": "8px", "padding": "16px", "marginBottom": "16px", "boxShadow": "0 2px 8px rgba(0,0,0,0.04)"})
 
     def run(self):
         self.app.run(debug=True, host='0.0.0.0')
