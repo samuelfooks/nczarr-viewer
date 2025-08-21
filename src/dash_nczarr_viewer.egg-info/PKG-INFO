@@ -25,6 +25,7 @@ Requires-Dist: netCDF4
 Requires-Dist: leafmap
 Requires-Dist: folium
 Requires-Dist: copernicusmarine
+Requires-Dist: pyproj>=3.7.1
 Dynamic: license-file
 
 # Dash NCZarr Viewer

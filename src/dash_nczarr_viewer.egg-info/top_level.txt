@@ -1,4 +1,5 @@
 __init__
+assets
 data
 dimension
 layout_manager

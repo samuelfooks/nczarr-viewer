@@ -12,3 +12,4 @@ netCDF4
 leafmap
 folium
 copernicusmarine
+pyproj>=3.7.1

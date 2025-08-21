@@ -2,7 +2,60 @@
 
 ### A Simple Geo NetCDF and Zarr Dataset Viewing App
 
-This application allows you to view local NetCDF files or online Zarr files. 
+This application allows you to view local NetCDF files or online Zarr files.
+
+## Quick Start (Local Development)
+
+### Option 1: Using the run script (Recommended)
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the viewer
+python run.py
+```
+
+### Option 2: Using uv (if you have uv installed)
+```bash
+# Install dependencies
+uv sync
+
+# Run the viewer
+python run.py
+```
+
+### Option 3: Install as a package
+```bash
+# Install in development mode
+pip install -e .
+
+# Run the viewer
+python run.py
+```
+
+The viewer will be available at http://localhost:8050
+
+## Development
+
+### Project Structure
+```
+dash-nczarr-viewer/
+├── src/                    # Source code
+│   ├── zarr_data_viewer.py    # Main application
+│   ├── variables.py           # Variable selection logic
+│   ├── dimension.py           # Dimension handling
+│   ├── data.py               # Data display and plotting
+│   └── layout_manager.py     # UI layout management
+├── run.py                  # Quick local runner
+├── requirements.txt         # Python dependencies
+├── pyproject.toml          # Project configuration
+└── Dockerfile              # Docker configuration
+```
+
+### Making Changes
+1. Edit files in the `src/` directory
+2. Run `python run.py` to test your changes
+3. The app will automatically reload when you save changes (in debug mode) 
 
 ## Features
 
@@ -13,6 +66,11 @@ This application allows you to view local NetCDF files or online Zarr files.
 - **Data Plotting**: Plot data using Matplotlib and Cartopy.
 
 ## Usage
+
+### Local Development vs Docker
+
+- **Local Development**: Use the quick start methods above for development, testing, and when you want to modify the code
+- **Docker**: Use Docker for production deployment or when you want a consistent environment
 
 ### Running with a Local NetCDF File
 

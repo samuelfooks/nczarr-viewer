@@ -1,3 +1,4 @@
 /myfiles
 /data
 *.nc
+__pycache__/
