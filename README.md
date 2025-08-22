@@ -64,6 +64,11 @@ dash-nczarr-viewer/
 - **Array Selection**: Choose values from dimensions to select the array you need to view.
 - **Quick Statistics**: Calculate Max, Min, Mean, Median, and Standard Deviation for the selected array.
 - **Data Plotting**: Plot data using Matplotlib and Cartopy.
+- **CMEMS Support**: Automatically detects CMEMS URLs and uses the Copernicus Marine Toolbox for optimal data access.
+
+### Requirements
+
+CMEMS support requires the `copernicusmarine` package, which is included in the project dependencies.
 
 ## Usage
 
