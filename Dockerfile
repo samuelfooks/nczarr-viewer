@@ -1,5 +1,13 @@
 # Stage 1: Build dependencies and install the application
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+FROM python:3.12-slim-bookworm AS builder
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
 
 # Enable bytecode compilation and set link mode to copy
 ENV UV_COMPILE_BYTECODE=1 \
@@ -24,6 +32,18 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Stage 2: Create a minimal runtime image
 FROM python:3.12-slim-bookworm
+
+# Install runtime system dependencies for cartopy and other geospatial libraries
+RUN apt-get update && apt-get install -y \
+    libproj-dev \
+    proj-data \
+    proj-bin \
+    libgeos-dev \
+    libgdal-dev \
+    gdal-bin \
+    libnetcdf-dev \
+    libhdf5-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
