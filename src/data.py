@@ -1,410 +1,735 @@
 from dash import Output, Input, State, html, dcc
 import numpy as np
 import plotly.graph_objs as go
+import xarray as xr
+import traceback
+import logging
+from io import StringIO
+import sys
 
 
-class DataDisplay:
-    def __init__(self, app, ds_getter, dataseturl_getter, dataset_engine_getter):
+class DatasetLoader:
+    """Handles dataset loading with multiple backends and error handling"""
+
+    def __init__(self):
+        self.available_backends = self._detect_backends()
+        self.log_output = StringIO()
+        self.setup_logging()
+
+    def _detect_backends(self):
+        """Detect available backends for dataset loading"""
+        backends = {
+            'xarray': {
+                'engines': ['netcdf4', 'zarr', 'h5netcdf', 'cfgrib'],
+                'description': 'Standard xarray engines'
+            }
+        }
+
+        # Check for specialized backends
+        try:
+            import copernicusmarine  # noqa: F401
+            backends['copernicusmarine'] = {
+                'engines': ['default', 'custom_open_zarr'],
+                'description': 'Copernicus Marine Service backend'
+            }
+        except ImportError:
+            pass
+
+        try:
+            import pydap  # noqa: F401
+            backends['pydap'] = {
+                'engines': ['pydap'],
+                'description': 'OPeNDAP backend'
+            }
+        except ImportError:
+            pass
+
+        try:
+            import rasterio  # noqa: F401
+            backends['rasterio'] = {
+                'engines': ['rasterio'],
+                'description': 'Raster backend'
+            }
+        except ImportError:
+            pass
+
+        return backends
+
+    def setup_logging(self):
+        """Setup logging to capture output"""
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.StreamHandler(self.log_output),
+                logging.StreamHandler(sys.stdout)  # Also show in terminal
+            ]
+        )
+        self.logger = logging.getLogger(__name__)
+
+    def clear_logs(self):
+        """Clear the log output buffer"""
+        self.log_output.truncate(0)
+        self.log_output.seek(0)
+
+    def get_logs(self):
+        """Get the current log output"""
+        return self.log_output.getvalue()
+
+    def load_dataset(self, url, backend='xarray', engine='auto', **kwargs):
+        """
+        Load dataset with specified backend and engine
+
+        Args:
+            url: Dataset URL or path
+            backend: Backend to use ('xarray', 'copernicusmarine', etc.)
+            engine: Engine to use with the backend
+            **kwargs: Additional arguments passed to the dataset loader
+        """
+        self.clear_logs()
+        self.logger.info(f"Attempting to load dataset: {url}")
+        self.logger.info(f"Backend: {backend}, Engine: {engine}")
+        self.logger.info(f"Additional kwargs: {kwargs}")
+
+        try:
+            if backend == 'xarray':
+                return self._load_with_xarray(url, engine, **kwargs)
+            elif backend == 'copernicusmarine':
+                return self._load_with_copernicusmarine(url, engine, **kwargs)
+            else:
+                raise ValueError(f"Unknown backend: {backend}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to load dataset: {str(e)}")
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+            return None, str(e)
+
+    def _load_with_xarray(self, url, engine='auto', **kwargs):
+        """Load dataset using xarray"""
+        self.logger.info(f"Loading with xarray, engine: {engine}")
+
+        if engine == 'auto':
+            # Auto-detect engine based on URL
+            if '.nc' in url or '.nc4' in url:
+                engine = 'netcdf4'
+            elif '.zarr' in url:
+                engine = 'zarr'
+            elif '.grib' in url or '.grb' in url:
+                engine = 'cfgrib'
+            else:
+                engine = 'netcdf4'  # Default
+
+        self.logger.info(f"Selected engine: {engine}")
+
+        # Try to open with selected engine
+        try:
+            # Filter out only backend and engine from kwargs to avoid conflicts
+            # All other xarray parameters (including decode_timedelta) are passed through
+            xarray_kwargs = {
+                k: v for k, v in kwargs.items()
+                if k not in ['engine', 'backend']
+            }
+
+            self.logger.info(f"Passing kwargs to xarray: {xarray_kwargs}")
+
+            ds = xr.open_dataset(
+                url, engine=engine, **xarray_kwargs
+            )
+            self.logger.info(f"Successfully opened dataset with {engine}")
+            self.logger.info(f"Dataset shape: {dict(ds.dims)}")
+            self.logger.info(f"Data variables: {list(ds.data_vars.keys())}")
+            return ds, engine
+        except Exception as e:
+            self.logger.warning(f"Failed with engine {engine}: {e}")
+
+            # Try alternative engines if the first one fails
+            alternative_engines = [
+                'netcdf4', 'zarr', 'h5netcdf', 'cfgrib'
+            ]
+            if engine in alternative_engines:
+                alternative_engines.remove(engine)
+
+            for alt_engine in alternative_engines:
+                try:
+                    self.logger.info(
+                        f"Trying alternative engine: {alt_engine}"
+                    )
+                    ds = xr.open_dataset(
+                        url, engine=alt_engine, **xarray_kwargs
+                    )
+                    self.logger.info(
+                        f"Successfully opened with alternative engine: {alt_engine}"
+                    )
+                    return ds, alt_engine
+                except Exception as alt_e:
+                    self.logger.warning(
+                        f"Alternative engine {alt_engine} failed: {alt_e}"
+                    )
+
+            raise Exception(f"All engines failed. Last error: {e}")
+
+    def _load_with_copernicusmarine(self, url, engine='default', **kwargs):
+        """Load dataset using copernicusmarine backend"""
+        self.logger.info(f"Loading with copernicusmarine, engine: {engine}")
+
+        # For custom_open_zarr engine, we don't need credentials
+        if engine == 'custom_open_zarr.open_zarr':
+            try:
+                from copernicusmarine.core_functions import custom_open_zarr
+                # Try to open the store and then open it as a dataset
+                print(
+                    f"opening dataset with custom_open_zarr.open_zarr and {url}")
+
+                # The custom_open_zarr.open_zarr function accepts:
+                # - dataset_url (positional)
+                # - copernicus_marine_username (optional)
+                # - **kwargs (which get passed to xarray.open_zarr)
+
+                # Filter out copernicusmarine-specific parameters
+                zarr_kwargs = {k: v for k, v in kwargs.items()
+                               if k not in ['username', 'password', 'dataset_id']}
+
+                # Set S3 client configuration through environment variables
+                # This is more reliable than passing through storage_options
+                import os
+                os.environ.setdefault(
+                    'AWS_MAX_POOL_CONNECTIONS', '20')  # Increased from 10
+                os.environ.setdefault('AWS_RETRY_MODE', 'adaptive')
+                os.environ.setdefault('AWS_MAX_ATTEMPTS', '5')  # Increased
+                # Increased from 60 to 120
+                os.environ.setdefault('AWS_CONNECT_TIMEOUT', '120')
+                # Increased from 120 to 300
+                os.environ.setdefault('AWS_READ_TIMEOUT', '300')
+                os.environ.setdefault('AWS_S3_ADDRESSING_STYLE', 'virtual')
+
+                # Debug: Print current environment variables
+                print(
+                    f"DEBUG: AWS_MAX_POOL_CONNECTIONS = {os.environ.get('AWS_MAX_POOL_CONNECTIONS')}")
+                print(
+                    f"DEBUG: AWS_RETRY_MODE = {os.environ.get('AWS_RETRY_MODE')}")
+                print(
+                    f"DEBUG: AWS_MAX_ATTEMPTS = {os.environ.get('AWS_MAX_ATTEMPTS')}")
+
+                # Pass user kwargs to custom_open_zarr.open_zarr
+                # The environment variables will configure the S3 client
+                ds = custom_open_zarr.open_zarr(url, **zarr_kwargs)
+
+                # Debug: Check if dataset has any S3-related attributes
+                print(f"DEBUG: Dataset type: {type(ds)}")
+                if hasattr(ds, '_file_obj'):
+                    print(f"DEBUG: Dataset has _file_obj: {ds._file_obj}")
+                if hasattr(ds, 'encoding'):
+                    print(f"DEBUG: Dataset encoding: {ds.encoding}")
+
+                    # Debug: Try to access a small piece of data to trigger S3 operations
+                # This will help us see what connection parameters are being used
+                try:
+                    if hasattr(ds, 'data_vars') and list(ds.data_vars.keys()):
+                        var_name = list(ds.data_vars.keys())[0]
+                        print(
+                            f"DEBUG: Attempting to access variable: {var_name}")
+                        # Get just the first element to minimize data transfer
+                        sample_data = ds[var_name].isel(
+                            {dim: 0 for dim in ds[var_name].dims})
+                        print(
+                            f"DEBUG: Successfully accessed sample data: {sample_data.shape}")
+                        print(
+                            f"DEBUG: This should have triggered S3 operations with our connection settings")
+                    else:
+                        print("DEBUG: No data variables found in dataset")
+                except Exception as e:
+                    print(f"DEBUG: Error during data access: {e}")
+                    print(f"DEBUG: Error type: {type(e)}")
+
+                print(f"DEBUG: Dataset loaded successfully")
+                print(f"dataset: {ds}")
+
+                self.logger.info("Successfully opened with custom_open_zarr")
+                return ds, f"copernicusmarine_custom_open_zarr"
+            except ImportError:
+                raise Exception("copernicusmarine not available")
+            except Exception as e:
+                raise Exception(f"custom_open_zarr failed: {e}")
+
+        # For other engines, extract copernicusmarine-specific parameters
+        username = kwargs.get('username')
+        password = kwargs.get('password')
+        dataset_id = kwargs.get('dataset_id')
+
+        if not username or not password:
+            raise Exception(
+                "copernicusmarine requires 'username' and 'password' in backend args")
+
+        if not dataset_id:
+            # If no dataset_id provided, try to use the URL as dataset_id
+            dataset_id = url
+            self.logger.info(
+                f"No dataset_id provided, using URL as dataset_id: {dataset_id}")
+
+        self.logger.info(f"Using dataset_id: {dataset_id}")
+        self.logger.info(f"Username: {username}")
+
+        try:
+            import copernicusmarine
+
+            # Filter out copernicusmarine-specific parameters to avoid duplicates
+            filtered_kwargs = {k: v for k, v in kwargs.items()
+                               if k not in ['username', 'password', 'dataset_id']}
+
+            if engine == 'default':
+                # Use copernicusmarine.open_dataset with dataset_id
+                ds = copernicusmarine.open_dataset(
+                    dataset_id, username=username, password=password, **filtered_kwargs
+                )
+            else:
+                raise ValueError(f"Unknown copernicusmarine engine: {engine}")
+
+            self.logger.info("Successfully opened with copernicusmarine")
+            return ds, f"copernicusmarine_{engine}"
+
+        except ImportError:
+            raise Exception("copernicusmarine not available")
+        except Exception as e:
+            raise Exception(f"copernicusmarine failed: {e}")
+
+
+class DataManager:
+    """
+    Unified data management class that handles subsetting, statistics, and plotting.
+    This consolidates the previously scattered functionality into a clean, simple API.
+    """
+
+    def __init__(self, app, dataset_getter):
         self.app = app
-        self.ds_getter = ds_getter
-        self.dataseturl_getter = dataseturl_getter
-        self.dataset_engine_getter = dataset_engine_getter
+        # Function that returns the current dataset
+        self.dataset_getter = dataset_getter
 
     def setup_callbacks(self):
+        """Setup all data-related callbacks in one place"""
+
+        # Callback for quick statistics
         @self.app.callback(
             Output('data-array-display', 'children'),
             Input('show-data-button', 'n_clicks'),
             State('variable-dropdown', 'value'),
             State('selected-dimensions-store', 'data'),
             State('data-filter-min', 'value'),
-            State('data-filter-max', 'value')
+            State('data-filter-max', 'value'),
+            prevent_initial_call=True
         )
-        def display_data(n_clicks, selected_var, selected_dims, filter_min, filter_max):
-            ds = self.ds_getter()
-            dataseturl = self.dataseturl_getter()
-            dataset_engine = self.dataset_engine_getter()
-            if n_clicks > 0 and selected_var and ds is not None:
-                try:
-                    if not selected_dims or not hasattr(selected_dims, 'items'):
-                        return html.Div(["No dimension selections made."])
-                    selection = {dim: ds[selected_var][dim].values[val[0]:val[1]] if isinstance(
-                        val, list) else ds[selected_var][dim].values[val] for dim, val in selected_dims.items()}
-                    data_retriever = DataRetriever(
-                        selected_var, selection, dataseturl, dataset_engine)
-                    selected_data = data_retriever.retrieve_data_using_dimension_selections()
-                    array_values = selected_data.values
-                    # Convert timedelta64 or datetime64 to float for stats
-                    if np.issubdtype(array_values.dtype, np.timedelta64):
-                        array_values = array_values.astype(
-                            'timedelta64[h]').astype(float)
-                    elif np.issubdtype(array_values.dtype, np.datetime64):
-                        array_values = (
-                            array_values - array_values.min()).astype('timedelta64[D]').astype(float)
-                    # Apply filter if set
-                    if filter_min is not None:
-                        array_values = np.where(
-                            array_values < filter_min, np.nan, array_values)
-                    if filter_max is not None:
-                        array_values = np.where(
-                            array_values > filter_max, np.nan, array_values)
-                    max_value = float(np.nanmax(array_values))
-                    min_value = float(np.nanmin(array_values))
-                    mean_value = float(np.nanmean(array_values))
-                    median_value = float(np.nanmedian(array_values))
-                    std_value = float(np.nanstd(array_values))
-                    return html.Div([
-                        html.P(f"Max: {max_value}"),
-                        html.P(f"Min: {min_value}"),
-                        html.P(f"Mean: {mean_value}"),
-                        html.P(f"Median: {median_value}"),
-                        html.P(f"Std: {std_value}")
-                    ])
-                except Exception as e:
-                    return html.Div(["Error displaying data: ", str(e)])
-            return html.Div("Show Max/Min/Mean/Med/STDEV")
+        def show_quick_stats(n_clicks, selected_var, selected_dims, filter_min, filter_max):
+            """Display quick statistics for the selected data"""
+            if n_clicks is None or n_clicks == 0:
+                return "Click 'Show Data Quick Stats' to see statistics"
 
+            if not selected_var or not selected_dims:
+                return "Please select a variable and dimensions first"
 
-# data_plot.py
+            try:
+                # Get subsetted data
+                subsetted_data = self._get_subsetted_data(
+                    selected_var, selected_dims)
+                if subsetted_data is None:
+                    return "Error: Could not subset data"
 
+                # Calculate and display statistics
+                stats = self._calculate_statistics(
+                    subsetted_data, filter_min, filter_max)
+                if stats is None:
+                    return "Error: Could not calculate statistics"
 
-class DataPlot:
-    def __init__(self, app, ds_getter, dim_select, dataseturl_getter, dataset_engine_getter):
-        self.app = app
-        self.ds_getter = ds_getter
-        self.dim_select = dim_select
-        self.dataseturl_getter = dataseturl_getter
-        self.dataset_engine_getter = dataset_engine_getter
+                return self._format_statistics_display(stats)
 
-    def setup_callbacks(self):
-        print("Setting up DataPlot callbacks...")
+            except Exception as e:
+                return f"Error: {str(e)}"
 
+        # Callback for plotting
         @self.app.callback(
-            Output('map-container', 'children'),
-            Output('map-container', 'style'),
+            [Output('map-container', 'children'),
+             Output('map-container', 'style')],
             Input('show-plot-button', 'n_clicks'),
             State('variable-dropdown', 'value'),
             State('selected-dimensions-store', 'data'),
             State('data-filter-min', 'value'),
-            State('data-filter-max', 'value')
+            State('data-filter-max', 'value'),
+            prevent_initial_call=True
         )
-        def display_plot(n_clicks, selected_var, selected_dims, filter_min, filter_max):
-            print(f"=== PLOT CALLBACK TRIGGERED ===")
-            print(f"n_clicks: {n_clicks}")
-            print(f"selected_var: {selected_var}")
-            print(f"selected_dims: {selected_dims}")
+        def show_plot(n_clicks, selected_var, selected_dims, filter_min, filter_max):
+            """Display a plot of the selected data"""
+            if n_clicks is None or n_clicks == 0:
+                return "Click 'Show Plot' to generate a plot", {'display': 'none'}
+
+            if not selected_var or not selected_dims:
+                return "Please select a variable and dimensions first", {'display': 'none'}
+
+            try:
+                # Get subsetted data
+                subsetted_data = self._get_subsetted_data(
+                    selected_var, selected_dims)
+                if subsetted_data is None:
+                    return "Error: Could not subset data", {'display': 'none'}
+
+                # Create and return plot
+                plot_figure = self._create_plot(
+                    subsetted_data, selected_var, filter_min, filter_max)
+                if plot_figure is None:
+                    return "Error: Could not create plot", {'display': 'none'}
+
+                return dcc.Graph(figure=plot_figure, config={"displayModeBar": True, "scrollZoom": True}), {'display': 'block'}
+
+            except Exception as e:
+                return f"Error: {str(e)}", {'display': 'none'}
+
+    def _get_subsetted_data(self, selected_var, selected_dims):
+        """Get subsetted data based on user selections"""
+        try:
+            dataset = self.dataset_getter()
+            if dataset is None:
+                return None
+
+            variable_data = dataset[selected_var]
+
+            # Apply dimension selections
+            if selected_dims:
+                # Handle different types of selections
+                isel_dict = {}  # For integer-based indexing
+                sel_dict = {}   # For label-based selection
+
+                for dim, val in selected_dims.items():
+                    print(f"dim: {dim}, val: {val}")
+                    if isinstance(val, tuple):
+                        if len(val) == 2:
+                            # Range selection (start, end) - use slice for array subsetting
+                            start_val, end_val = val
+                            # Find indices for the start and end values
+                            dim_coords = variable_data.coords[dim].values
+
+                            # Handle different coordinate types
+                            if np.issubdtype(dim_coords.dtype, np.datetime64):
+                                # For datetime coordinates, convert to numpy datetime64 for comparison
+                                if isinstance(start_val, str):
+                                    start_val = np.datetime64(start_val)
+                                if isinstance(end_val, str):
+                                    end_val = np.datetime64(end_val)
+
+                            start_idx = np.searchsorted(dim_coords, start_val)
+                            end_idx = np.searchsorted(dim_coords, end_val)
+                            # Ensure we don't go out of bounds
+                            start_idx = max(
+                                0, min(start_idx, len(dim_coords) - 1))
+                            end_idx = max(0, min(end_idx, len(dim_coords) - 1))
+                            # Convert numpy types to Python types for slice
+                            start_idx = int(start_idx)
+                            end_idx = int(end_idx)
+                            isel_dict[dim] = slice(start_idx, end_idx + 1)
+                        elif len(val) == 1:
+                            # Single selection (val,) - use exact value selection
+                            sel_dict[dim] = val[0]
+                    elif isinstance(val, list):
+                        # Handle list format (fallback for old dimension selection)
+                        if len(val) == 2:
+                            # Range selection [start, end] - convert to tuple format
+                            start_val, end_val = val
+                            # Handle timestamp conversion for time dimension
+                            if dim.lower() in ['time', 'date'] and isinstance(start_val, (int, float)):
+                                # Convert nanosecond timestamp to datetime
+                                start_val = np.datetime64(start_val, 'ns')
+                                end_val = np.datetime64(end_val, 'ns')
+
+                            # Find indices for the start and end values
+                            dim_coords = variable_data.coords[dim].values
+                            start_idx = np.searchsorted(dim_coords, start_val)
+                            end_idx = np.searchsorted(dim_coords, end_val)
+                            # Ensure we don't go out of bounds
+                            start_idx = max(
+                                0, min(start_idx, len(dim_coords) - 1))
+                            end_idx = max(0, min(end_idx, len(dim_coords) - 1))
+                            # Convert numpy types to Python types for slice
+                            start_idx = int(start_idx)
+                            end_idx = int(end_idx)
+                            isel_dict[dim] = slice(start_idx, end_idx + 1)
+                        elif len(val) == 1:
+                            # Single selection [val] - convert to tuple format
+                            single_val = val[0]
+                            # Handle timestamp conversion for time dimension
+                            if dim.lower() in ['time', 'date'] and isinstance(single_val, (int, float)):
+                                single_val = np.datetime64(single_val, 'ns')
+                            sel_dict[dim] = single_val
+                    elif isinstance(val, (int, float)):
+                        # Direct value selection
+                        sel_dict[dim] = val
+                    else:
+                        # Fallback for other types
+                        sel_dict[dim] = val
+
+                # Apply integer-based selections first
+                if isel_dict:
+                    print(f"Applying integer-based selections: {isel_dict}")
+                    selected_data = variable_data.isel(**isel_dict)
+                else:
+                    selected_data = variable_data
+
+                # Apply label-based selections
+                if sel_dict:
+                    print(f"Applying label-based selections: {sel_dict}")
+                    selected_data = selected_data.sel(**sel_dict)
+            elif selected_var and not selected_dims:
+                selected_data = variable_data
+
+            print(f"selected_data shape: {dict(selected_data.sizes)}")
+
+            return selected_data
+
+        except Exception as e:
+            print(f"Error subsetting data: {e}")
+            return None
+
+    def _calculate_statistics(self, data_array, filter_min=None, filter_max=None):
+        """Calculate basic statistics from a data array"""
+        try:
+            if data_array is None:
+                return None
+
+            # Get values and convert to numpy array
+            values = np.array(data_array.values)
+
+            # Convert timedelta64 or datetime64 to float for stats
+            if np.issubdtype(values.dtype, np.timedelta64):
+                values = values.astype('timedelta64[h]').astype(float)
+            elif np.issubdtype(values.dtype, np.datetime64):
+                values = (values - values.min()
+                          ).astype('timedelta64[D]').astype(float)
+
+            # Apply filters if set
+            if filter_min is not None:
+                values = np.where(values < filter_min, np.nan, values)
+            if filter_max is not None:
+                values = np.where(values > filter_max, np.nan, values)
+
+            # Calculate statistics
+            stats = {
+                'min': float(np.nanmin(values)),
+                'max': float(np.nanmax(values)),
+                'mean': float(np.nanmean(values)),
+                'median': float(np.nanmedian(values)),
+                'std': float(np.nanstd(values)),
+                'count': int(np.sum(np.isfinite(values))),
+                'total': int(values.size)
+            }
+
+            return stats
+
+        except Exception as e:
+            print(f"Error calculating statistics: {e}")
+            return None
+
+    def _format_statistics_display(self, stats):
+        """Format statistics for display"""
+        if stats is None:
+            return "No statistics available"
+
+        return html.Div([
+            html.H6("Data Statistics", className="mb-3"),
+            html.Div([
+                html.Div([
+                    html.Strong("Min: "), f"{stats['min']:.4g}",
+                ], className="me-4"),
+                html.Div([
+                    html.Strong("Max: "), f"{stats['max']:.4g}",
+                ], className="me-4"),
+                html.Div([
+                    html.Strong("Mean: "), f"{stats['mean']:.4g}",
+                ], className="me-4"),
+                html.Div([
+                    html.Strong("Median: "), f"{stats['median']:.4g}",
+                ], className="me-4"),
+                html.Div([
+                    html.Strong("Std: "), f"{stats['std']:.4g}",
+                ], className="me-4"),
+            ], className="d-flex flex-wrap"),
+            html.Div([
+                html.Small(
+                    f"Valid values: {stats['count']} / {stats['total']}"),
+            ], className="mt-2 text-muted")
+        ])
+
+    def _create_plot(self, data_array, variable_name, filter_min=None, filter_max=None):
+        """Create a plot from the data array"""
+        try:
+            if data_array is None:
+                return None
+
+            # Get coordinate information
+            coords = list(data_array.coords.keys())
+            dims = list(data_array.dims)
+
+            print(f"coords: {coords}")
+            print(f"dims: {dims}")
+            print(f"data_array: {data_array}")
+            print(f"variable_name: {variable_name}")
             print(f"filter_min: {filter_min}")
             print(f"filter_max: {filter_max}")
 
-            ds = self.ds_getter()
-            print(f"ds is None: {ds is None}")
+            # Find spatial dimensions
+            lat_dim = None
+            lon_dim = None
 
-            dataseturl = self.dataseturl_getter()
-            dataset_engine = self.dataset_engine_getter()
-            print('plotting')
-            if n_clicks > 0 and selected_var and selected_dims and ds is not None:
-                print('plotting 2')
-                try:
-                    # Infer lat/lon/x/y from selected_dims or ds[selected_var].dims
-                    lat_dim = None
-                    lon_dim = None
-                    print(f"selected_dims: {selected_dims}")
-                    for dim in selected_dims:
-                        if 'lat' in dim.lower() or 'y' in dim.lower():
-                            lat_dim = dim
-                            print(f"got lat dim {lat_dim}")
-                        if 'lon' in dim.lower() or 'x' in dim.lower():
-                            lon_dim = dim
-                            print(f"got lon dim {lon_dim}")
-                    if not lat_dim or not lon_dim:
-                        print(
-                            f"found no lat lon selected_dims: {selected_dims}")
-                        return html.Div(["No valid latitude/longitude dimensions for plotting."]), {'display': 'none'}
-                    print(f"got dims lat/lon {lat_dim}/{lon_dim}")
-                    selection = {}
-                    for dim, val in selected_dims.items():
-                        if ('lat' in dim.lower() or 'y' in dim.lower() or 'lon' in dim.lower() or 'x' in dim.lower()) and isinstance(val, list):
-                            selection[dim] = ds[selected_var][dim].values[val[0]:val[1]]
-                        else:
-                            # For dropdowns (like depth), val is an int index
+            for dim in dims:
+                dim_lower = dim.lower()
+                if 'lat' in dim_lower or 'y' in dim_lower:
+                    lat_dim = dim
+                elif 'lon' in dim_lower or 'x' in dim_lower:
+                    lon_dim = dim
 
-                            selection[dim] = ds[selected_var][dim].values[val] if isinstance(
-                                val, int) else val
-                    data_retriever = DataRetriever(
-                        selected_var, selection, dataseturl, dataset_engine)
-                    print(f"DataRetriever: {data_retriever}")
-                    selected_data = data_retriever.retrieve_data_using_dimension_selections()
+            # Get data values
+            values = np.array(data_array.values)
 
-                    # Get coordinate values and convert to WGS84 if needed
-                    lons = selected_data[lon_dim].values
-                    lats = selected_data[lat_dim].values
+            # Convert timedelta64 or datetime64 to float for plotting
+            if np.issubdtype(values.dtype, np.timedelta64):
+                values = values.astype('timedelta64[h]').astype(float)
+            elif np.issubdtype(values.dtype, np.datetime64):
+                values = (values - values.min()
+                          ).astype('timedelta64[D]').astype(float)
 
-                    # Check if we need to convert coordinates to WGS84
-                    try:
-                        # Look for grid mapping information
-                        grid_mapping = selected_data.attrs.get('grid_mapping')
-                        if grid_mapping and grid_mapping in selected_data.coords:
-                            gm_var = selected_data.coords[grid_mapping]
-                            try:
-                                # Try to construct a pyproj CRS from grid mapping attributes
-                                import pyproj
-                                crs = pyproj.CRS.from_cf(gm_var.attrs)
-                                # If not already WGS84
-                                if crs is not None and crs != pyproj.CRS(4326):
-                                    print(
-                                        f"Converting coordinates from {crs} to WGS84")
-                                    transformer = pyproj.Transformer.from_crs(
-                                        crs, 4326, always_xy=True)
+            # Apply filters
+            if filter_min is not None:
+                values = np.where(values < filter_min, np.nan, values)
+            if filter_max is not None:
+                values = np.where(values > filter_max, np.nan, values)
 
-                                    # Create coordinate grids for transformation
-                                    lon_grid, lat_grid = np.meshgrid(
-                                        lons, lats)
-                                    lon_wgs84, lat_wgs84 = transformer.transform(
-                                        lon_grid, lat_grid)
+            # Handle different data dimensions
+            values = np.squeeze(values)
 
-                                    # Update coordinate values
-                                    lons = lon_wgs84
-                                    lats = lat_wgs84
-                                    print(
-                                        f"Converted coordinates to WGS84: lon range {lons.min():.4f} to {lons.max():.4f}, lat range {lats.min():.4f} to {lats.max():.4f}")
-                            except Exception as e:
-                                print(
-                                    f"Coordinate conversion error: {e}, using original coordinates")
-                        else:
-                            # Check if coordinates already look like degrees
-                            if np.all(np.abs(lons) <= 180) and np.all(np.abs(lats) <= 90):
-                                print(
-                                    "Coordinates appear to already be in WGS84 degrees")
-                            else:
-                                print(
-                                    "No grid mapping found, coordinates may need conversion")
-                    except Exception as e:
-                        print(f"Error checking coordinate system: {e}")
+            if values.ndim == 1:
+                # 1D data - create line plot
+                return self._create_1d_plot(values, data_array, variable_name, coords)
+            elif values.ndim == 2 and lat_dim and lon_dim:
+                # 2D spatial data - create heatmap
+                return self._create_2d_heatmap(values, data_array, variable_name, lat_dim, lon_dim)
+            else:
+                # Fallback for other cases
+                return self._create_fallback_plot(values, variable_name)
 
-                    data_values = np.array(selected_data.values)
-                    # Convert timedelta64 or datetime64 to float for plotting
-                    if np.issubdtype(data_values.dtype, np.timedelta64):
-                        data_values = data_values.astype(
-                            'timedelta64[h]').astype(float)
-                    elif np.issubdtype(data_values.dtype, np.datetime64):
-                        data_values = (data_values - data_values.min()
-                                       ).astype('timedelta64[D]').astype(float)
-                    # Apply filter if set
-                    if filter_min is not None:
-                        data_values = np.where(
-                            data_values < filter_min, np.nan, data_values)
-                    if filter_max is not None:
-                        data_values = np.where(
-                            data_values > filter_max, np.nan, data_values)
-                    # Debug: Print data shapes and values
-                    print(f"Original data shape: {data_values.shape}")
-                    print(
-                        f"Original lons shape: {lons.shape}, range: {lons.min():.4f} to {lons.max():.4f}")
-                    print(
-                        f"Original lats shape: {lats.shape}, range: {lats.min():.4f} to {lats.max():.4f}")
-                    print(
-                        f"Data values range: {np.nanmin(data_values):.4f} to {np.nanmax(data_values):.4f}")
+        except Exception as e:
+            print(f"Error creating plot: {e}")
+            return None
 
-                    # Remove NaN/Inf from lons/lats and data_values
-                    lons = np.ravel(lons)
-                    lats = np.ravel(lats)
-                    data_values = np.where(np.isfinite(
-                        data_values), data_values, np.nan)
+    def _create_1d_plot(self, values, data_array, variable_name, coords):
+        """Create a 1D line plot"""
+        if len(coords) == 0:
+            return None
 
-                    print(
-                        f"After ravel - lons: {lons.shape}, lats: {lats.shape}, data: {data_values.shape}")
+        # Use the first coordinate for x-axis
+        x_coord = coords[0]
+        x_values = data_array.coords[x_coord].values
 
-                    if lons.size == 0 or lats.size == 0 or np.all(np.isnan(data_values)):
-                        return html.Div(["No valid longitude/latitude or data values for plotting."]), {'display': 'none'}
+        # Convert datetime64 to string for plotting if needed
+        if np.issubdtype(x_values.dtype, np.datetime64):
+            x_values = [str(x) for x in x_values]
+        else:
+            x_values = x_values.tolist()
 
-                    # Handle different data dimensions properly
-                    print(
-                        f"Processing data with {data_values.ndim}D shape: {data_values.shape}")
+        # Ensure values is also a list
+        y_values = values.tolist()
 
-                    # First, try to squeeze out single dimensions
-                    original_shape = data_values.shape
-                    data_values = np.squeeze(data_values)
-                    print(
-                        f"After squeeze: {data_values.shape} (was {original_shape})")
+        fig = go.Figure(go.Scatter(
+            x=x_values,
+            y=y_values,
+            mode='lines+markers',
+            name=variable_name,
+            line=dict(color='blue', width=2),
+            marker=dict(size=4)
+        ))
 
-                    if data_values.ndim == 1:
-                        # 1D data - create scatter plot
-                        print("1D data detected, creating scatter plot")
-                        if lons.size == data_values.size:
-                            # Data points correspond to longitudes
-                            x_coords = lons
-                            y_coords = data_values
-                        elif lats.size == data_values.size:
-                            # Data points correspond to latitudes
-                            x_coords = lats
-                            y_coords = data_values
-                        else:
-                            return html.Div([f"1D data size {data_values.size} doesn't match lat size {lats.size} or lon size {lons.size}"]), {'display': 'none'}
-                    elif data_values.ndim == 2:
-                        # 2D data - ensure proper alignment for heatmap
-                        print(f"2D data shape: {data_values.shape}")
-                        expected_shape = (lats.size, lons.size)
-                        print(f"Expected shape: {expected_shape}")
+        fig.update_layout(
+            title=f"{variable_name} vs {x_coord}",
+            xaxis_title=x_coord,
+            yaxis_title=variable_name,
+            height=500,
+            template="plotly_white"
+        )
 
-                        if data_values.shape == expected_shape:
-                            print("Data shape matches lat/lon grid - good!")
-                        elif data_values.shape == (lons.size, lats.size):
-                            print("Data shape is transposed - fixing...")
-                            data_values = data_values.T
-                        else:
-                            return html.Div([f"Data shape {data_values.shape} does not match expected {expected_shape} for plotting."]), {'display': 'none'}
-                    else:
-                        return html.Div([f"Cannot plot {data_values.ndim}D data after squeeze. Shape: {data_values.shape}"]), {'display': 'none'}
+        return fig
 
-                    print(
-                        f"Final shapes - lons: {lons.shape}, lats: {lats.shape}, data: {data_values.shape}")
-                    # Use Plotly for fast, interactive plotting with proper geographic layout
-                    if data_values.ndim == 1:
-                        # 1D data - create a simple scatter plot
-                        print("Creating 1D scatter plot")
-                        fig = go.Figure(go.Scatter(
-                            x=x_coords,
-                            y=y_coords,
-                            mode='lines+markers',
-                            name=selected_var,
-                            line=dict(color='blue', width=2),
-                            marker=dict(size=4)
-                        ))
-                        fig.update_layout(
-                            title=f"{selected_var} Line Plot",
-                            xaxis_title="Coordinate",
-                            yaxis_title=f"{selected_var}",
-                            height=600
-                        )
-                    elif data_values.ndim == 2:
-                        # 2D data - use heatmap
-                        print("Creating 2D heatmap")
-                        print(
-                            f"Heatmap input: z={data_values.shape}, x={lons.shape}, y={lats.shape}")
-                        fig = go.Figure(go.Heatmap(
-                            z=data_values,
-                            x=lons,
-                            y=lats,
-                            colorscale='Viridis',
-                            colorbar=dict(title=selected_var),
-                            zmin=np.nanmin(data_values),
-                            zmax=np.nanmax(data_values),
-                            hoverongaps=False
-                        ))
+    def _create_2d_heatmap(self, values, data_array, variable_name, lat_dim, lon_dim):
+        """Create a 2D heatmap for spatial data"""
+        lats = data_array.coords[lat_dim].values
+        lons = data_array.coords[lon_dim].values
 
-                        # Update layout with proper geographic projection and labels
-                        fig.update_layout(
-                            title=f"{selected_var} Array Plot",
-                            xaxis_title=f"{lon_dim} (Longitude)",
-                            yaxis_title=f"{lat_dim} (Latitude)",
-                            height=600,
-                            margin=dict(l=0, r=0, t=40, b=0),
-                            template="plotly_white"
-                        )
+        # Ensure proper alignment
+        if values.shape != (lats.size, lons.size):
+            if values.shape == (lons.size, lats.size):
+                values = values.T
+            else:
+                # Try to reshape if possible
+                values = values.reshape(lats.size, lons.size)
 
-                        # Update axes to show proper geographic coordinates with auto-zoom
-                        fig.update_xaxes(
-                            tickformat='.4f',
-                            tickprefix='',
-                            ticksuffix='°',
-                            showgrid=True,
-                            gridwidth=1,
-                            gridcolor='lightgray',
-                            range=[lons.min(), lons.max()],
-                            constrain='domain'
-                        )
-                        fig.update_yaxes(
-                            tickformat='.4f',
-                            tickprefix='',
-                            ticksuffix='°',
-                            showgrid=True,
-                            gridwidth=1,
-                            gridcolor='lightgray',
-                            range=[lats.min(), lats.max()],
-                            constrain='domain'
-                        )
+        fig = go.Figure(go.Heatmap(
+            z=values,
+            x=lons,
+            y=lats,
+            colorscale='Viridis',
+            colorbar=dict(title=variable_name),
+            zmin=np.nanmin(values),
+            zmax=np.nanmax(values),
+            hoverongaps=False
+        ))
 
-                        # Add some padding around the data bounds for better visualization
-                        lon_padding = (lons.max() - lons.min()) * 0.05
-                        lat_padding = (lats.max() - lats.min()) * 0.05
+        fig.update_layout(
+            title=f"{variable_name} Spatial Plot",
+            xaxis_title=f"{lon_dim} (Longitude)",
+            yaxis_title=f"{lat_dim} (Latitude)",
+            height=600,
+            template="plotly_white"
+        )
 
-                        fig.update_layout(
-                            xaxis=dict(
-                                range=[lons.min() - lon_padding,
-                                       lons.max() + lon_padding]
-                            ),
-                            yaxis=dict(
-                                range=[lats.min() - lat_padding,
-                                       lats.max() + lat_padding]
-                            )
-                        )
-                    else:
-                        return html.Div([f"Unexpected data dimensions: {data_values.ndim}"]), {'display': 'none'}
+        return fig
 
-                    print("Plot created successfully, returning to browser")
-                    return dcc.Graph(figure=fig, config={"displayModeBar": True, "scrollZoom": True}), {'display': 'block'}
-                except Exception as e:
-                    print(f"Plot error: {e}")
-                    return html.Div([f"Plot error: {e}"]), {'display': 'none'}
-            print("No plot conditions met - returning empty plot")
-            return html.Div("No plot."), {'display': 'none'}
+    def _create_fallback_plot(self, values, variable_name):
+        """Create a fallback plot for unexpected data shapes"""
+        fig = go.Figure(go.Scatter(
+            y=values.flatten(),
+            mode='lines',
+            name=variable_name
+        ))
+
+        fig.update_layout(
+            title=f"{variable_name} Data Plot",
+            yaxis_title=variable_name,
+            height=400,
+            template="plotly_white"
+        )
+
+        return fig
 
 
-# data_retriever.py
-class DataRetriever:
-    def __init__(self, selected_var, user_selection, dataseturl, dataset_engine):
-        self.selected_var = selected_var
-        self.user_selection = user_selection
-        self.dataseturl = dataseturl
-        self.dataset_engine = dataset_engine
+# Legacy classes for backward compatibility (can be removed later)
+class DataQuickStats:
+    """Legacy class - use DataManager instead"""
 
-    def retrieve_data_using_dimension_selections(self):
-        """
-        Efficiently retrieve a sliced DataArray using integer-based selections (isel) when possible.
-        Only call .compute() after all slicing, and return the DataArray (not .values).
-        """
-        try:
-            import xarray as xr
-            ds = xr.open_dataset(self.dataseturl, engine=self.dataset_engine)
-            var = ds[self.selected_var]
-            isel_dict = {}
-            sel_dict = {}
-            for dim, val in self.user_selection.items():
-                print(f"Dimension: {dim}, Value: {val}")
-                # If val is a list of two ints, treat as a range of indices (from slider)
-                if isinstance(val, list) and len(val) == 2 and all(isinstance(v, int) for v in val):
-                    isel_dict[dim] = slice(val[0], val[1])
-                # If val is a single int, treat as a single index
-                elif isinstance(val, int):
-                    isel_dict[dim] = val
-                # Otherwise, treat as a value-based selection (e.g., for time)
-                else:
-                    sel_dict[dim] = val
-            if isel_dict:
-                var = var.isel(**isel_dict)
-            if sel_dict:
-                var = var.sel(**sel_dict)
-            return var.compute()  # Only compute after all slicing
-        except Exception:
-            try:
-                from copernicusmarine.core_functions import custom_open_zarr
-                ds = custom_open_zarr.open_zarr(
-                    self.dataseturl, copernicus_marine_username='sfooks')
-                var = ds[self.selected_var]
-                isel_dict = {}
-                sel_dict = {}
-                for dim, val in self.user_selection.items():
-                    if isinstance(val, list) and len(val) == 2 and all(isinstance(v, int) for v in val):
-                        isel_dict[dim] = slice(val[0], val[1])
-                    elif isinstance(val, int):
-                        isel_dict[dim] = val
-                    else:
-                        sel_dict[dim] = val
-                if isel_dict:
-                    var = var.isel(**isel_dict)
-                if sel_dict:
-                    var = var.sel(**sel_dict)
-                return var.compute()
-            except Exception as e:
-                print(f"Data retrieval error: {e}")
-                return None
-        return None
+    def __init__(self, app, ds_getter, dataseturl_getter, dataset_engine_getter):
+        self.data_manager = DataManager(app, ds_getter)
+
+    def setup_callbacks(self):
+        self.data_manager.setup_callbacks()
+
+
+class DataSubsetter:
+    """Legacy class - use DataManager instead"""
+
+    def __init__(self, dataset):
+        self.dataset = dataset
+
+    def subset_data(self, selected_var, user_selection, compute=True):
+        # This functionality is now in DataManager._get_subsetted_data
+        pass
+
+
+class DataPlot:
+    """Legacy class - use DataManager instead"""
+
+    def __init__(self, app, data_array, dimension_selection, dataseturl_getter, dataset_engine_getter):
+        self.data_manager = DataManager(app, lambda: data_array)
+
+    def setup_callbacks(self):
+        self.data_manager.setup_callbacks()

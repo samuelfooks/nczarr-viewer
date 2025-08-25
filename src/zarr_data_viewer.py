@@ -1,14 +1,11 @@
 import dash
 from dash import Dash, html, dcc, Input, Output, State, callback_context
 import dash_bootstrap_components as dbc
-import xarray as xr
-import signal
-import os
 
 from variables import VariableSelection
 from dimension import DimensionSelection
-from data import DataDisplay, DataRetriever, DataPlot
-from layout_manager import LayoutManager, ResetFunctionality
+from data import DataManager, DatasetLoader
+from layout_manager import ResetFunctionality
 
 
 class TimeoutException(Exception):
@@ -22,6 +19,7 @@ class ZarrDataViewerApp:
         self.ds = None
         self.dataset_engine = None
         self.dataseturl = None
+        self.dataset_loader = DatasetLoader()
 
         self.app.layout = dbc.Container([
             dbc.Row([
@@ -42,21 +40,21 @@ class ZarrDataViewerApp:
                                     id='dataset-dropdown',
                                     options=[
                                         {
-                                            "label": "https://s3.waw3-1.cloudferro.com/"
-                                            "emodnet/emodnet_seabed_habitats/12548/"
-                                            "EUSeaMap_2023.zarr",
+                                            "label": ("https://s3.waw3-1.cloudferro.com/"
+                                                      "emodnet/emodnet_seabed_habitats/12548/"
+                                                      "EUSeaMap_2023.zarr"),
                                             "value": ("https://s3.waw3-1.cloudferro.com/"
                                                       "emodnet/emodnet_seabed_habitats/12548/"
                                                       "EUSeaMap_2023.zarr")
                                         },
                                         {
-                                            "label": "https://s3.waw3-1.cloudferro.com/"
-                                            "emodnet/emodnet_arco/emodnet_chemistry/"
-                                            "water_body_dissolved_inorganic_nitrogen/"
-                                            "water_body_dissolved_inorganic_nitrogen_"
-                                            "masked_using_relative_error_threshold_0.5_"
-                                            "baltic_sea/Water_body_dissolved_inorganic_"
-                                            "nitrogen.4Danl.zarr",
+                                            "label": ("https://s3.waw3-1.cloudferro.com/"
+                                                      "emodnet/emodnet_arco/emodnet_chemistry/"
+                                                      "water_body_dissolved_inorganic_nitrogen/"
+                                                      "water_body_dissolved_inorganic_nitrogen_"
+                                                      "masked_using_relative_error_threshold_0.5_"
+                                                      "baltic_sea/Water_body_dissolved_inorganic_"
+                                                      "nitrogen.4Danl.zarr"),
                                             "value": ("https://s3.waw3-1.cloudferro.com/"
                                                       "emodnet/emodnet_arco/emodnet_chemistry/"
                                                       "water_body_dissolved_inorganic_nitrogen/"
@@ -66,22 +64,21 @@ class ZarrDataViewerApp:
                                                       "nitrogen.4Danl.zarr")
                                         },
                                         {
-                                            "label": "https://s3.waw3-1.cloudferro.com/"
-                                            "emodnet/emodnet_geology/12495/"
-                                            "EMODnet_Seabed_Substrate_1M.zarr",
+                                            "label": ("https://s3.waw3-1.cloudferro.com/"
+                                                      "emodnet/emodnet_geology/12495/"
+                                                      "EMODnet_Seabed_Substrate_1M.zarr"),
                                             "value": ("https://s3.waw3-1.cloudferro.com/"
                                                       "emodnet/emodnet_geology/12495/"
                                                       "EMODnet_Seabed_Substrate_1M.zarr")
                                         },
                                         {
-                                            "label": "https://s3.waw3-1.cloudferro.com/mdl-arco-geo-041/arco/"
-                                            "NWSHELF_ANALYSISFORECAST_BGC_004_002/"
-                                            "cmems_mod_nws_bgc_anfc_0.027deg-3D_P1D-m_202311/"
-                                            "geoChunked.zarr",
-                                            "value": ("https://s3.waw3-1.cloudferro.com/"
-                                                      "mdl-arco-geo-041/arco/"
-                                                      "NWSHELF_ANALYSISFORECAST_BGC_004_002/"
-                                                      "cmems_mod_nws_bgc_anfc_0.027deg-3D_P1D-m_202311/"
+                                            "label": ("https://s3.waw3-1.cloudferro.com/mdl-arco-geo-001/"
+                                                      "arco/ARCTIC_MULTIYEAR_BGC_002_005/"
+                                                      "cmems_mod_arc_bgc_my_ecosmo_P1M_202105/"
+                                                      "geoChunked.zarr"),
+                                            "value": ("https://s3.waw3-1.cloudferro.com/mdl-arco-geo-001/"
+                                                      "arco/ARCTIC_MULTIYEAR_BGC_002_005/"
+                                                      "cmems_mod_arc_bgc_my_ecosmo_P1M_202105/"
                                                       "geoChunked.zarr")
                                         }
                                     ],
@@ -99,7 +96,110 @@ class ZarrDataViewerApp:
                                     type='text',
                                     placeholder='Enter custom dataset URL or path',
                                     style={'width': '100%'}
-                                )
+                                ),
+                                html.Br(),
+                                html.Br(),
+                                html.Label("Backend Selection:",
+                                           className="mb-2",
+                                           style={"fontWeight": "bold"}),
+                                dcc.Dropdown(
+                                    id='backend-dropdown',
+                                    options=[
+                                        {"label": "Auto-detect", "value": "auto"},
+                                        {"label": "xarray", "value": "xarray"},
+                                        {"label": "Copernicus Marine",
+                                         "value": "copernicusmarine"},
+                                    ],
+                                    value="auto",
+                                    style={'width': '100%'}
+                                ),
+                                html.Br(),
+                                html.Label("Backend Configuration (JSON):",
+                                           className="mb-2",
+                                           style={"fontWeight": "bold"}),
+                                html.Div([
+                                    html.A("How to use kwargs",
+                                           href="#",
+                                           id="help-link",
+                                           style={"color": "#007bff", "textDecoration": "underline"}),
+                                    html.Span(" - Click for examples",
+                                              className="text-muted",
+                                              style={"fontSize": "12px"})
+                                ], className="mb-2"),
+                                dcc.Textarea(
+                                    id='additional-params-input',
+                                    placeholder='{"backend": "xarray", "engine": "zarr", "chunks": {"time": 1}}',
+                                    style={'width': '100%', 'height': '80px'}
+                                ),
+                                # Help modal content (hidden by default)
+                                dbc.Modal([
+                                    dbc.ModalHeader(dbc.ModalTitle(
+                                        "How to use Backend Configuration")),
+                                    dbc.ModalBody([
+                                        html.H6("xarray Backend Examples:"),
+                                        html.Pre('''
+{
+  "backend": "xarray",
+  "engine": "zarr",
+  "chunks": {"time": 1},
+  "decode_timedelta": true
+}
+
+{
+  "backend": "xarray", 
+  "engine": "netcdf4",
+  "chunks": {"time": 1, "lat": 100, "lon": 100},
+  "decode_timedelta": false
+}
+
+{
+  "backend": "xarray",
+  "engine": "h5netcdf",
+  "chunks": {"time": 1},
+  "decode_cf": true,
+  "mask_and_scale": true
+}
+                                         ''', style={"backgroundColor": "#f8f9fa", "padding": "10px", "borderRadius": "4px"}),
+
+                                        html.H6(
+                                            "Copernicus Marine Examples:"),
+                                        html.Pre('''
+{
+  "backend": "copernicusmarine",
+  "engine": "copernicusmarinetoolbox",
+  "username": "your_username",
+  "password": "your_password",
+  "dataset_id": "dataset_identifier"
+}
+
+{
+  "backend": "copernicusmarine",
+  "engine": "custom_open_zarr.open_zarr",
+  "chunks": {"time": 1}
+}
+                                         ''', style={"backgroundColor": "#f8f9fa", "padding": "10px", "borderRadius": "4px"}),
+
+                                        html.H6("Notes:"),
+                                        html.Ul([
+                                            html.Li(
+                                                "The 'backend' field in JSON overrides the dropdown selection"),
+                                            html.Li(
+                                                "For xarray: engine can be 'zarr', 'netcdf4', 'h5netcdf', 'cfgrib'"),
+                                            html.Li(
+                                                "For Copernicus Marine: engine can be 'copernicusmarinetoolbox' or 'custom_open_zarr.open_zarr'"),
+                                            html.Li(
+                                                "Additional parameters like chunks, decode_timedelta, s3 credentials can be included"),
+                                            html.Li(
+                                                "All xarray parameters (chunks, decode_timedelta, etc.) can be passed through JSON"),
+                                            html.Li(
+                                                "Common xarray params: chunks, decode_cf, decode_timedelta, mask_and_scale, storage_options")
+                                        ])
+                                    ]),
+                                    dbc.ModalFooter(
+                                        dbc.Button(
+                                            "Close", id="close-help-modal", className="ms-auto")
+                                    )
+                                ], id="help-modal", is_open=False)
                             ]),
                             html.Br(),
                             html.Br(),
@@ -204,6 +304,32 @@ class ZarrDataViewerApp:
                     ], className='mb-3'),
                 ], width=12),
             ]),
+            # Debug and logging row
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardHeader([
+                            "Debug Output & Logs",
+                            dbc.Button("Clear Logs", id="clear-logs-button",
+                                       color="warning", size="sm", className="float-end")
+                        ]),
+                        dbc.CardBody([
+                            html.Div(id='debug-output-container'),
+                            html.Div(id='logs-container', style={
+                                'backgroundColor': '#f8f9fa',
+                                'border': '1px solid #dee2e6',
+                                'borderRadius': '4px',
+                                'padding': '10px',
+                                'fontFamily': 'monospace',
+                                'fontSize': '12px',
+                                'maxHeight': '300px',
+                                'overflowY': 'auto',
+                                'whiteSpace': 'pre-wrap'
+                            })
+                        ])
+                    ], className='mb-3'),
+                ], width=12),
+            ]),
             dcc.Store(id='selected-dimensions-store'),
             html.Div(id='debug-output')
         ], fluid=True)
@@ -214,12 +340,11 @@ class ZarrDataViewerApp:
         self.dimension_selection = DimensionSelection(
             self.app, lambda: self.ds)
         self.dimension_selection.setup_callbacks()
-        self.data_display = DataDisplay(
-            self.app, lambda: self.ds, lambda: self.dataseturl, lambda: self.dataset_engine)
-        self.data_display.setup_callbacks()
-        self.data_plot = DataPlot(self.app, lambda: self.ds, self.dimension_selection,
-                                  lambda: self.dataseturl, lambda: self.dataset_engine)
-        self.data_plot.setup_callbacks()
+
+        # Use the new unified DataManager for all data operations
+        self.data_manager = DataManager(self.app, lambda: self.ds)
+        self.data_manager.setup_callbacks()
+
         self.reset_functionality = ResetFunctionality(
             self.app, lambda: self.ds)
         self.reset_functionality.setup_callbacks()
@@ -227,6 +352,7 @@ class ZarrDataViewerApp:
         self.setup_callbacks()
         self.update_variable_dropdown()
         self.setup_variable_metadata_callback()
+        self.setup_help_modal_callback()
 
     def update_variable_dropdown(self):
         # Update the variable dropdown to list all data variables
@@ -304,45 +430,95 @@ class ZarrDataViewerApp:
         except Exception as e:
             return f"Error reading metadata: {e}"
 
+    def setup_help_modal_callback(self):
+        @self.app.callback(
+            Output("help-modal", "is_open"),
+            [Input("help-link", "n_clicks"),
+             Input("close-help-modal", "n_clicks")],
+            [State("help-modal", "is_open")],
+            prevent_initial_call=True
+        )
+        def toggle_help_modal(n1, n2, is_open):
+            if n1 or n2:
+                return not is_open
+            return is_open
+
     def setup_callbacks(self):
         @self.app.callback(
             [Output('load-status', 'children'),
-             Output('dataset-info-container', 'children')],
-            Input('load-dataset-button', 'n_clicks'),
+             Output('dataset-info-container', 'children'),
+             Output('logs-container', 'children')],
+            [Input('load-dataset-button', 'n_clicks'),
+             Input('clear-logs-button', 'n_clicks')],
             [State('dataset-dropdown', 'value'),
-             State('dataset-url-input', 'value')],
+             State('dataset-url-input', 'value'),
+             State('backend-dropdown', 'value'),
+             State('additional-params-input', 'value')],
             prevent_initial_call=True
         )
-        def load_dataset(n_clicks, dropdown_url, custom_url):
-            # Use dropdown selection if available, otherwise use custom input
-            url = dropdown_url if dropdown_url else custom_url
-
-            if not url:
-                return "Please select a dataset from the list or enter a custom URL.", dash.no_update
-
-            # Show loading spinner automatically via dcc.Loading
-            self.dataseturl = url
-            self.ds, self.dataset_engine = self.read_dataset_metadata(url)
-            if self.ds is None:
-                return f"Failed to load dataset from {url}", dash.no_update
-            return f"Successfully loaded dataset from {url}", self.get_metadata_summary()
-
-    def read_dataset_metadata(self, dataseturl):
-        try:
-            if '.nc' in dataseturl:
-                engine = 'netcdf4'
-            elif '.zarr' in dataseturl:
-                engine = 'zarr'
+        def handle_dataset_operations(load_clicks, clear_clicks, dropdown_url, custom_url, backend, additional_params):
+            # Determine which button was clicked
+            ctx = callback_context
+            if ctx.triggered:
+                triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
             else:
-                raise ValueError("Unsupported file format")
+                triggered_id = None
 
-            print(f"Opening dataset {dataseturl} using engine {engine}")
-            ds = xr.open_dataset(dataseturl, engine=engine,
-                                 decode_timedelta=True)
-            return ds, engine
-        except Exception as e:
-            print(f"Error opening dataset: {e}")
-            return None, None
+            if triggered_id == 'clear-logs-button':
+                # Clear logs operation
+                self.dataset_loader.clear_logs()
+                return dash.no_update, dash.no_update, "Logs cleared."
+
+            elif triggered_id == 'load-dataset-button':
+                # Load dataset operation
+                # Use dropdown selection if available, otherwise use custom input
+                url = dropdown_url if dropdown_url else custom_url
+
+                if not url:
+                    return "Please select a dataset from the list or enter a custom URL.", dash.no_update, dash.no_update
+
+                # Parse additional parameters
+                kwargs = {}
+                if additional_params and additional_params.strip():
+                    try:
+                        import json
+                        kwargs = json.loads(additional_params)
+                    except json.JSONDecodeError as e:
+                        return f"Invalid JSON in backend args: {e}", dash.no_update, dash.no_update
+
+                # Parse JSON configuration
+                config = {}
+                if additional_params and additional_params.strip():
+                    try:
+                        import json
+                        config = json.loads(additional_params)
+                    except json.JSONDecodeError as e:
+                        return f"Invalid JSON in backend args: {e}", dash.no_update, dash.no_update
+
+                # If no backend specified in JSON, use dropdown selection
+                if 'backend' not in config and backend != "auto":
+                    config['backend'] = backend
+
+                # Show loading spinner automatically via dcc.Loading
+                self.dataseturl = url
+
+                # Load dataset with enhanced error handling
+                result = self.dataset_loader.load_dataset(
+                    url, **config)
+
+                if isinstance(result, tuple) and len(result) == 2:
+                    self.ds, self.dataset_engine = result
+                    if self.ds is None:
+                        error_msg = f"Failed to load dataset from {url}. Error: {self.dataset_engine}"
+                        return error_msg, dash.no_update, self.dataset_loader.get_logs()
+                    else:
+                        success_msg = f"Successfully loaded dataset from {url} using {self.dataset_engine}"
+                        return success_msg, self.get_metadata_summary(), self.dataset_loader.get_logs()
+                else:
+                    return f"Unexpected result from dataset loader: {result}", dash.no_update, self.dataset_loader.get_logs()
+
+            # Default case - shouldn't happen
+            return dash.no_update, dash.no_update, dash.no_update
 
     def setup_variable_metadata_callback(self):
         @self.app.callback(

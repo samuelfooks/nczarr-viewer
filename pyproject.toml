@@ -33,6 +33,7 @@ dependencies = [
     "folium",
     "copernicusmarine",
     "pyproj>=3.7.1",
+    "pip>=25.2",
 ]
 
 [project.urls]

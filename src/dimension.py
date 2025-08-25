@@ -3,6 +3,8 @@ from dash import dcc, html, callback_context
 from dash.dependencies import Input, Output, State, ALL, MATCH
 import pyproj
 import json
+import numpy as np
+
 
 class DimensionSelection:
     def __init__(self, app, ds_getter):
@@ -38,27 +40,63 @@ class DimensionSelection:
             Input({'type': 'dimension-dropdown', 'index': ALL}, 'value'),
             Input('dimension-checklist', 'value'),
             State('variable-dropdown', 'value'),
+            State({'type': 'dimension-slider', 'index': ALL}, 'id'),
+            State({'type': 'dimension-dropdown', 'index': ALL}, 'id'),
             prevent_initial_call=True
         )
-        def store_selected_dimensions(slider_values, dropdown_values, checked_dims, selected_var):
+        def store_selected_dimensions(slider_values, dropdown_values,
+                                      checked_dims, selected_var,
+                                      slider_ids, dropdown_ids):
             ds = self.ds_getter()
             if not checked_dims or ds is None:
                 return {}
+
             selected_dims = {}
-            slider_idx = 0
-            dropdown_idx = 0
-            for dim in checked_dims:
-                dim_lower = dim.lower()
-                if any(key in dim_lower for key in ['lat', 'lon', 'x', 'y']):
-                    if slider_idx < len(slider_values) and slider_values[slider_idx] is not None:
-                        val = slider_values[slider_idx]
-                        selected_dims[dim] = val
-                    slider_idx += 1
-                elif any(key in dim_lower for key in ['depth', 'time']):
-                    if dropdown_idx < len(dropdown_values) and dropdown_values[dropdown_idx] is not None:
-                        val = dropdown_values[dropdown_idx]
-                        selected_dims[dim] = val
-                    dropdown_idx += 1
+
+            # Process slider values (range selections)
+            for i, slider_val in enumerate(slider_values):
+                if slider_val is not None and i < len(slider_ids):
+                    dim = slider_ids[i]['index']
+                    if dim in checked_dims:
+                        # Convert slider indices to actual dimension values
+                        dim_values = ds[selected_var][dim].values
+                        if (isinstance(slider_val, list) and
+                                len(slider_val) == 2):
+                            # Range selection - return tuple of (start, end) values
+                            start_idx, end_idx = slider_val
+                            start_val = dim_values[start_idx]
+                            end_val = dim_values[end_idx]
+                            # Convert to proper data type if needed
+                            if isinstance(start_val, np.datetime64):
+                                start_val = start_val.item()
+                            if isinstance(end_val, np.datetime64):
+                                end_val = end_val.item()
+                            selected_dims[dim] = (start_val, end_val)
+                        elif isinstance(slider_val, (int, float)):
+                            # Single value selection - return tuple with single value
+                            idx = int(slider_val)
+                            val = dim_values[idx]
+                            # Convert to proper data type if needed
+                            if isinstance(val, np.datetime64):
+                                val = val.item()
+                            selected_dims[dim] = (val,)
+
+            # Process dropdown values (single selections)
+            for i, dropdown_val in enumerate(dropdown_values):
+                if dropdown_val is not None and i < len(dropdown_ids):
+                    dim = dropdown_ids[i]['index']
+                    if (dim in checked_dims and
+                            dim not in selected_dims):  # Don't override slider selections
+                        # Convert dropdown index to actual dimension value
+                        dim_values = ds[selected_var][dim].values
+                        idx = dropdown_val
+                        val = dim_values[idx]
+                        # Convert to proper data type if needed
+                        if isinstance(val, np.datetime64):
+                            val = val.item()
+                        # Single selection - return tuple with single value
+                        selected_dims[dim] = (val,)
+
             return selected_dims
 
         @self.app.callback(
@@ -84,98 +122,178 @@ class DimensionSelection:
         # Use .sizes for mapping from dimension name to length (future-proof)
         dimensions = list(ds[selected_var].sizes.keys())
         return html.Div([
-            html.Label("Select dimensions to filter:"),
+            html.Label("Select dimensions to filter:", className="mb-2"),
             dcc.Checklist(
                 id='dimension-checklist',
                 options=[{'label': dim, 'value': dim} for dim in dimensions],
-                value=dimensions
+                value=dimensions,
+                className="mb-3"
             )
         ])
 
     def generate_dimension_controls(self, ds, selected_dims, selected_var):
         if selected_var is None or selected_dims is None:
             return []
+
         dimension_controls = []
         for dim in selected_dims:
             dim_lower = dim.lower()
+            # Determine default control type based on dimension characteristics
+            default_control = self._get_default_control_type(
+                ds, selected_var, dim)
+
             controls = [
-                html.Label(f"{dim} control type:"),
+                html.Label(f"{dim} control type:", className="mb-2"),
                 dcc.RadioItems(
                     id={'type': 'dim-control-type', 'index': dim},
                     options=[
-                        {'label': 'Slider', 'value': 'slider'},
-                        {'label': 'Dropdown', 'value': 'dropdown'}
+                        {'label': 'Slider (Range)', 'value': 'slider'},
+                        {'label': 'Dropdown (Single)', 'value': 'dropdown'}
                     ],
-                    value='slider' if ds[selected_var][dim].size > 10 else 'dropdown',
+                    value=default_control,
                     inline=True,
-                    style={'marginBottom': '8px'}
+                    className="mb-3"
                 ),
                 html.Div(id={'type': 'dim-control-widget', 'index': dim})
             ]
-            dimension_controls.append(html.Div(controls, style={'marginBottom': '16px'}))
+            dimension_controls.append(
+                html.Div(controls, className="mb-4 p-3 border rounded")
+            )
         return dimension_controls
+
+    def _get_default_control_type(self, ds, selected_var, dim):
+        """Determine the default control type for a dimension"""
+        dim_lower = dim.lower()
+        dim_size = ds[selected_var][dim].size
+
+        # Spatial dimensions typically work better with sliders
+        if any(key in dim_lower for key in ['lat', 'lon', 'x', 'y']):
+            return 'slider'
+        # Time dimensions often work better with sliders
+        elif any(key in dim_lower for key in ['time', 'date']):
+            return 'slider'
+        # Elevation/depth can work with either, default to slider for large ranges
+        elif any(key in dim_lower for key in ['depth', 'elevation', 'height', 'level']):
+            return 'slider' if dim_size > 5 else 'dropdown'
+        # For other dimensions, use dropdown if small, slider if large
+        else:
+            return 'slider' if dim_size > 10 else 'dropdown'
 
     def create_range_slider(self, ds, dim, selected_var):
         dim_values = ds[selected_var][dim].values
         sorted_dim_values = sorted(dim_values)
-        min_val = 0
-        max_val = len(sorted_dim_values) - 1
-        range_25 = int(0.25 * max_val)
-        range_75 = int(0.75 * max_val)
-        step = max(1, len(sorted_dim_values) // 10)
-        def format_mark(val):
-            try:
-                return f"{float(val):.4f}"
-            except (ValueError, TypeError):
-                return str(val)
-        marks = None
-        grid_mapping = ds[selected_var].attrs.get('grid_mapping')
-        crs = None
-        if grid_mapping and grid_mapping in ds:
-            gm_var = ds[grid_mapping]
-            try:
-                # Try to construct a pyproj CRS from grid mapping attributes
-                crs = pyproj.CRS.from_cf(gm_var.attrs)
-            except Exception as e:
-                print(f"Could not parse grid mapping CRS: {e}")
-        if dim.lower() == 'x' and crs is not None:
-            try:
-                # Assume y=0 for x axis
-                transformer = pyproj.Transformer.from_crs(crs, 4326, always_xy=True)
-                marks = {i: f"{transformer.transform(sorted_dim_values[i], 0)[0]:.2f}°" for i in range(0, len(sorted_dim_values), step)}
-            except Exception as e:
-                print(f"CRS conversion error for x: {e}")
-                marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
-        elif dim.lower() == 'y' and crs is not None:
-            try:
-                # Assume x=0 for y axis
-                transformer = pyproj.Transformer.from_crs(crs, 4326, always_xy=True)
-                marks = {i: f"{transformer.transform(0, sorted_dim_values[i])[1]:.2f}°" for i in range(0, len(sorted_dim_values), step)}
-            except Exception as e:
-                print(f"CRS conversion error for y: {e}")
-                marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
-        else:
-            marks = {i: format_mark(sorted_dim_values[i]) for i in range(0, len(sorted_dim_values), step)}
+        min_idx = 0
+        max_idx = len(sorted_dim_values) - 1
+
+        # Set default range to middle 50% of the data
+        range_25 = int(0.25 * max_idx)
+        range_75 = int(0.75 * max_idx)
+        step = max(1, len(sorted_dim_values) // 20)  # More granular steps
+
+        # Create marks for better visualization
+        marks = self._create_slider_marks(
+            ds, selected_var, dim, sorted_dim_values, step)
+
         return html.Div([
-            html.Label(f'Select {dim} range'),
+            html.Label(f'Select {dim} range', className="mb-2"),
             dcc.RangeSlider(
                 id={'type': 'dimension-slider', 'index': dim},
-                min=min_val,
-                max=max_val,
+                min=min_idx,
+                max=max_idx,
                 value=[range_25, range_75],
                 marks=marks,
-                step=1
+                step=1,
+                tooltip={"placement": "bottom", "always_visible": True},
+                className="mb-2"
             ),
-            html.Div(id={'type': 'slider-output', 'index': dim})
+            html.Div([
+                html.Small(f"Range: {sorted_dim_values[range_25]:.4g} to {sorted_dim_values[range_75]:.4g}",
+                           className="text-muted")
+            ], id={'type': 'slider-output', 'index': dim})
         ])
 
     def create_dropdown(self, ds, dim, selected_var):
         dim_values = ds[selected_var][dim].values
+
+        # For large dimensions, show a subset of values to avoid overwhelming the dropdown
+        if len(dim_values) > 100:
+            # Sample every nth value for display
+            step = len(dim_values) // 100
+            display_values = dim_values[::step]
+            display_indices = list(range(0, len(dim_values), step))
+        else:
+            display_values = dim_values
+            display_indices = list(range(len(dim_values)))
+
+        # Create better labels for the dropdown
+        options = []
+        for idx, val in zip(display_indices, display_values):
+            if isinstance(val, (np.datetime64, np.timedelta64)):
+                label = str(val)
+            else:
+                label = f"{val:.4g}" if isinstance(
+                    val, (int, float)) else str(val)
+            options.append({'label': label, 'value': idx})
+
         return html.Div([
-            html.Label(f'Select {dim}'),
+            html.Label(f'Select {dim}', className="mb-2"),
             dcc.Dropdown(
                 id={'type': 'dimension-dropdown', 'index': dim},
-                options=[{'label': str(val), 'value': idx} for idx, val in enumerate(dim_values)],
-                placeholder=f"Select {dim}"
-            )
+                options=options,
+                placeholder=f"Select {dim}",
+                className="mb-2"
+            ),
+            html.Div([
+                html.Small(f"Available: {len(dim_values)} values",
+                           className="text-muted")
+            ])
         ])
+
+    def _create_slider_marks(self, ds, selected_var, dim, sorted_dim_values, step):
+        """Create marks for the slider with proper formatting"""
+        marks = {}
+
+        # Try to get coordinate reference system for spatial dimensions
+        crs = self._get_crs(ds, selected_var)
+
+        dim_lower = dim.lower()
+
+        # Create marks with appropriate formatting
+        for i in range(0, len(sorted_dim_values), step):
+            val = sorted_dim_values[i]
+
+            if dim_lower in ['x', 'lon'] and crs is not None:
+                try:
+                    # Convert to degrees for display
+                    transformer = pyproj.Transformer.from_crs(
+                        crs, 4326, always_xy=True)
+                    lon, _ = transformer.transform(val, 0)
+                    marks[i] = f"{lon:.2f}°"
+                except Exception:
+                    marks[i] = f"{val:.4g}"
+            elif dim_lower in ['y', 'lat'] and crs is not None:
+                try:
+                    # Convert to degrees for display
+                    transformer = pyproj.Transformer.from_crs(
+                        crs, 4326, always_xy=True)
+                    _, lat = transformer.transform(0, val)
+                    marks[i] = f"{lat:.2f}°"
+                except Exception:
+                    marks[i] = f"{val:.4g}"
+            elif isinstance(val, (np.datetime64, np.timedelta64)):
+                marks[i] = str(val)[:10]  # Truncate long datetime strings
+            else:
+                marks[i] = f"{val:.4g}"
+
+        return marks
+
+    def _get_crs(self, ds, selected_var):
+        """Get coordinate reference system from dataset"""
+        try:
+            grid_mapping = ds[selected_var].attrs.get('grid_mapping')
+            if grid_mapping and grid_mapping in ds:
+                gm_var = ds[grid_mapping]
+                return pyproj.CRS.from_cf(gm_var.attrs)
+        except Exception:
+            pass
+        return None
