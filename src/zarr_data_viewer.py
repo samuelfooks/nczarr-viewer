@@ -10,8 +10,10 @@ from dimension import DimensionSelection
 from data import DataDisplay, DataRetriever, DataPlot
 from layout_manager import LayoutManager, ResetFunctionality
 
+
 class TimeoutException(Exception):
     pass
+
 
 class ZarrDataViewerApp:
     def __init__(self):
@@ -23,7 +25,8 @@ class ZarrDataViewerApp:
 
         self.app.layout = dbc.Container([
             dbc.Row([
-                dbc.Col(html.H1("Zarr/NetCDF Data Viewer", className="text-center mb-4"), width=12)
+                dbc.Col(html.H1("Zarr/NetCDF Data Viewer",
+                        className="text-center mb-4"), width=12)
             ]),
             # Top row: Load Dataset and Variable Selection side by side
             dbc.Row([
@@ -31,19 +34,88 @@ class ZarrDataViewerApp:
                     dbc.Card([
                         dbc.CardHeader("Load Dataset"),
                         dbc.CardBody([
-                            dcc.Input(id='dataset-url-input', type='text', placeholder='Enter dataset URL or path', style={'width': '100%'}),
+                            html.Div([
+                                html.Label("Choose from predefined datasets:",
+                                           className="mb-2",
+                                           style={"fontWeight": "bold"}),
+                                dcc.Dropdown(
+                                    id='dataset-dropdown',
+                                    options=[
+                                        {
+                                            "label": "https://s3.waw3-1.cloudferro.com/"
+                                            "emodnet/emodnet_seabed_habitats/12548/"
+                                            "EUSeaMap_2023.zarr",
+                                            "value": ("https://s3.waw3-1.cloudferro.com/"
+                                                      "emodnet/emodnet_seabed_habitats/12548/"
+                                                      "EUSeaMap_2023.zarr")
+                                        },
+                                        {
+                                            "label": "https://s3.waw3-1.cloudferro.com/"
+                                            "emodnet/emodnet_arco/emodnet_chemistry/"
+                                            "water_body_dissolved_inorganic_nitrogen/"
+                                            "water_body_dissolved_inorganic_nitrogen_"
+                                            "masked_using_relative_error_threshold_0.5_"
+                                            "baltic_sea/Water_body_dissolved_inorganic_"
+                                            "nitrogen.4Danl.zarr",
+                                            "value": ("https://s3.waw3-1.cloudferro.com/"
+                                                      "emodnet/emodnet_arco/emodnet_chemistry/"
+                                                      "water_body_dissolved_inorganic_nitrogen/"
+                                                      "water_body_dissolved_inorganic_nitrogen_"
+                                                      "masked_using_relative_error_threshold_0.5_"
+                                                      "baltic_sea/Water_body_dissolved_inorganic_"
+                                                      "nitrogen.4Danl.zarr")
+                                        },
+                                        {
+                                            "label": "https://s3.waw3-1.cloudferro.com/"
+                                            "emodnet/emodnet_geology/12495/"
+                                            "EMODnet_Seabed_Substrate_1M.zarr",
+                                            "value": ("https://s3.waw3-1.cloudferro.com/"
+                                                      "emodnet/emodnet_geology/12495/"
+                                                      "EMODnet_Seabed_Substrate_1M.zarr")
+                                        },
+                                        {
+                                            "label": "https://s3.waw3-1.cloudferro.com/mdl-arco-geo-041/arco/"
+                                            "NWSHELF_ANALYSISFORECAST_BGC_004_002/"
+                                            "cmems_mod_nws_bgc_anfc_0.027deg-3D_P1D-m_202311/"
+                                            "geoChunked.zarr",
+                                            "value": ("https://s3.waw3-1.cloudferro.com/"
+                                                      "mdl-arco-geo-041/arco/"
+                                                      "NWSHELF_ANALYSISFORECAST_BGC_004_002/"
+                                                      "cmems_mod_nws_bgc_anfc_0.027deg-3D_P1D-m_202311/"
+                                                      "geoChunked.zarr")
+                                        }
+                                    ],
+                                    placeholder='Select a dataset from the list',
+                                    style={'width': '100%'},
+                                    clearable=True,
+                                    searchable=True
+                                ),
+                                html.Br(),
+                                html.Label("Or enter a custom URL:",
+                                           className="mb-2",
+                                           style={"fontWeight": "bold"}),
+                                dcc.Input(
+                                    id='dataset-url-input',
+                                    type='text',
+                                    placeholder='Enter custom dataset URL or path',
+                                    style={'width': '100%'}
+                                )
+                            ]),
                             html.Br(),
                             html.Br(),
-                            dbc.Button('Load Dataset', id='load-dataset-button', color='primary', n_clicks=0, className='mb-2'),
-                            dcc.Loading(html.Div(id='load-status'), type='default'),
+                            dbc.Button('Load Dataset', id='load-dataset-button',
+                                       color='primary', n_clicks=0, className='mb-2'),
+                            dcc.Loading(html.Div(id='load-status'),
+                                        type='default'),
                         ])
                     ], className='mb-3'),
-                ], width=6),
+                ], width=10),
                 dbc.Col([
                     dbc.Card([
                         dbc.CardHeader("Variable Selection"),
                         dbc.CardBody([
-                            dcc.Dropdown(id='variable-dropdown', style={'width': '100%'}),
+                            dcc.Dropdown(id='variable-dropdown',
+                                         style={'width': '100%'}),
                         ])
                     ], className='mb-3'),
                 ], width=6),
@@ -67,11 +139,15 @@ class ZarrDataViewerApp:
                         dbc.CardHeader("Select Data"),
                         dbc.CardBody([
                             html.Div([
-                                html.Label("Data Filter (Min/Max):", className="mb-1"),
-                                dbc.Input(id='data-filter-min', type='number', placeholder='Min value', style={'width': '45%', 'display': 'inline-block', 'marginRight': '10px'}),
-                                dbc.Input(id='data-filter-max', type='number', placeholder='Max value', style={'width': '45%', 'display': 'inline-block'}),
+                                html.Label("Data Filter (Min/Max):",
+                                           className="mb-1"),
+                                dbc.Input(id='data-filter-min', type='number', placeholder='Min value', style={
+                                          'width': '45%', 'display': 'inline-block', 'marginRight': '10px'}),
+                                dbc.Input(id='data-filter-max', type='number', placeholder='Max value', style={
+                                          'width': '45%', 'display': 'inline-block'}),
                             ], className='mb-2'),
-                            dbc.Button('Show Data Quick Stats (Max/Min/Med/Stdev)', id='show-data-button', color='info', n_clicks=0, className='mt-2'),
+                            dbc.Button('Show Data Quick Stats (Max/Min/Med/Stdev)',
+                                       id='show-data-button', color='info', n_clicks=0, className='mt-2'),
                         ])
                     ], className='mb-3'),
                 ], width=12),
@@ -82,7 +158,8 @@ class ZarrDataViewerApp:
                     dbc.Card([
                         dbc.CardHeader("Quick Stats (Max/Min/Mean/Med/STDEV)"),
                         dbc.CardBody([
-                            dcc.Loading(html.Div(id='data-array-display'), type='circle'),
+                            dcc.Loading(
+                                html.Div(id='data-array-display'), type='circle'),
                         ])
                     ], className='mb-3'),
                 ], width=12),
@@ -99,12 +176,15 @@ class ZarrDataViewerApp:
                             #     dbc.Input(id='color-max', type='number', placeholder='Color max', style={'width': '45%', 'display': 'inline-block'}),
                             # ], className='mb-2'),
                             dcc.Loading(html.Div([
-                                html.Div(id='map-container', children=[html.Img(id='map', style={'width': '100%', 'height': 'auto'})]),
+                                html.Div(
+                                    id='map-container', children=[html.Img(id='map', style={'width': '100%', 'height': 'auto'})]),
                             ]), type='circle'),
-                            dbc.Button('Show Plot', id='show-plot-button', color='success', n_clicks=0, className='mt-2'),
+                            dbc.Button('Show Plot', id='show-plot-button',
+                                       color='success', n_clicks=0, className='mt-2'),
                         ])
                     ]),
-                    dbc.Button('Reset', id='reset-button', color='secondary', n_clicks=0, className='mt-3'),
+                    dbc.Button('Reset', id='reset-button',
+                               color='secondary', n_clicks=0, className='mt-3'),
                 ], width=12),
             ]),
             # Metadata row: full width at the bottom
@@ -131,13 +211,17 @@ class ZarrDataViewerApp:
         # Register all callbacks at startup, using a getter for self.ds
         self.variable_selection = VariableSelection(self.app, lambda: self.ds)
         self.variable_selection.setup_callbacks()
-        self.dimension_selection = DimensionSelection(self.app, lambda: self.ds)
+        self.dimension_selection = DimensionSelection(
+            self.app, lambda: self.ds)
         self.dimension_selection.setup_callbacks()
-        self.data_display = DataDisplay(self.app, lambda: self.ds, lambda: self.dataseturl, lambda: self.dataset_engine)
+        self.data_display = DataDisplay(
+            self.app, lambda: self.ds, lambda: self.dataseturl, lambda: self.dataset_engine)
         self.data_display.setup_callbacks()
-        self.data_plot = DataPlot(self.app, lambda: self.ds, self.dimension_selection, lambda: self.dataseturl, lambda: self.dataset_engine)
+        self.data_plot = DataPlot(self.app, lambda: self.ds, self.dimension_selection,
+                                  lambda: self.dataseturl, lambda: self.dataset_engine)
         self.data_plot.setup_callbacks()
-        self.reset_functionality = ResetFunctionality(self.app, lambda: self.ds)
+        self.reset_functionality = ResetFunctionality(
+            self.app, lambda: self.ds)
         self.reset_functionality.setup_callbacks()
 
         self.setup_callbacks()
@@ -149,7 +233,8 @@ class ZarrDataViewerApp:
         if self.ds is not None:
             from dash import callback_context
             options = [
-                {"label": f"{var} ({self.ds[var].attrs.get('long_name', var)})", "value": var}
+                {"label": f"{var} ({self.ds[var].attrs.get('long_name', var)})",
+                 "value": var}
                 for var in self.ds.data_vars.keys()
             ]
             self.app.callback_map['variable-dropdown.value']['inputs'][0]['options'] = options
@@ -191,7 +276,8 @@ class ZarrDataViewerApp:
                     ]))
             # Make dataset metadata div much neater and more readable
             return html.Div([
-                html.H5("Dataset Metadata (CF Conventions)", style={"marginTop": "10px", "color": "#222"}),
+                html.H5("Dataset Metadata (CF Conventions)", style={
+                        "marginTop": "10px", "color": "#222"}),
                 html.Table([
                     html.Thead(html.Tr([
                         html.Th("Variable"),
@@ -202,11 +288,13 @@ class ZarrDataViewerApp:
                     ])),
                     html.Tbody(var_rows)
                 ], id="dataset-info-table", style={"width": "100%", "fontSize": "13px", "color": "#222", "background": "#fff", "borderRadius": "6px", "padding": "8px", "marginBottom": "16px"}),
-                html.H6("Global Attributes", style={"color": "#222", "marginTop": "12px"}),
+                html.H6("Global Attributes", style={
+                        "color": "#222", "marginTop": "12px"}),
                 html.Table([
                     html.Tbody([
                         html.Tr([
-                            html.Td(html.B(str(k)), style={"paddingRight": "8px"}),
+                            html.Td(html.B(str(k)), style={
+                                    "paddingRight": "8px"}),
                             html.Td(str(v))
                         ]) for k, v in attrs
                     ])
@@ -221,12 +309,17 @@ class ZarrDataViewerApp:
             [Output('load-status', 'children'),
              Output('dataset-info-container', 'children')],
             Input('load-dataset-button', 'n_clicks'),
-            State('dataset-url-input', 'value'),
+            [State('dataset-dropdown', 'value'),
+             State('dataset-url-input', 'value')],
             prevent_initial_call=True
         )
-        def load_dataset(n_clicks, url):
+        def load_dataset(n_clicks, dropdown_url, custom_url):
+            # Use dropdown selection if available, otherwise use custom input
+            url = dropdown_url if dropdown_url else custom_url
+
             if not url:
-                return "Please provide a valid dataset URL or path.", dash.no_update
+                return "Please select a dataset from the list or enter a custom URL.", dash.no_update
+
             # Show loading spinner automatically via dcc.Loading
             self.dataseturl = url
             self.ds, self.dataset_engine = self.read_dataset_metadata(url)
@@ -244,7 +337,8 @@ class ZarrDataViewerApp:
                 raise ValueError("Unsupported file format")
 
             print(f"Opening dataset {dataseturl} using engine {engine}")
-            ds = xr.open_dataset(dataseturl, engine=engine, decode_timedelta=True)
+            ds = xr.open_dataset(dataseturl, engine=engine,
+                                 decode_timedelta=True)
             return ds, engine
         except Exception as e:
             print(f"Error opening dataset: {e}")
@@ -264,7 +358,8 @@ class ZarrDataViewerApp:
             attr_items = []
             for k, vv in v.attrs.items():
                 attr_items.append(html.Tr([
-                    html.Td(str(k), style={"fontWeight": "bold", "paddingRight": "8px"}),
+                    html.Td(str(k), style={
+                            "fontWeight": "bold", "paddingRight": "8px"}),
                     html.Td(str(vv))
                 ]))
             attr_table = html.Table([
@@ -277,12 +372,15 @@ class ZarrDataViewerApp:
             coord_items = []
             for c in v.coords:
                 try:
-                    arr = v.coords[c].isel({d: slice(0, 5) for d in v.coords[c].dims}).values
-                    preview = ', '.join([str(arr[i]) for i in range(min(5, arr.size))])
+                    arr = v.coords[c].isel({d: slice(0, 5)
+                                           for d in v.coords[c].dims}).values
+                    preview = ', '.join([str(arr[i])
+                                        for i in range(min(5, arr.size))])
                     if v.coords[c].sizes and list(v.coords[c].sizes.values())[0] > 5:
                         preview += ', ...'
                     coord_items.append(html.Li([
-                        html.B(c), f": [{preview}] (size={v.coords[c].sizes[list(v.coords[c].sizes.keys())[0]]})"
+                        html.B(
+                            c), f": [{preview}] (size={v.coords[c].sizes[list(v.coords[c].sizes.keys())[0]]})"
                     ]))
                 except Exception as e:
                     coord_items.append(html.Li([
@@ -313,7 +411,7 @@ class ZarrDataViewerApp:
     def run(self):
         self.app.run(debug=True, host='0.0.0.0')
 
+
 if __name__ == '__main__':
     app = ZarrDataViewerApp()
     app.run()
-
