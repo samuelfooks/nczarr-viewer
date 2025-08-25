@@ -1,4 +1,5 @@
 from dash import Output, Input, State, html, dcc
+import dash_bootstrap_components as dbc
 import numpy as np
 import plotly.graph_objs as go
 import xarray as xr
@@ -343,39 +344,151 @@ class DataManager:
             except Exception as e:
                 return f"Error: {str(e)}"
 
-        # Callback for plotting
+        # Callback for loading world map
         @self.app.callback(
             [Output('map-container', 'children'),
              Output('map-container', 'style')],
-            Input('show-plot-button', 'n_clicks'),
+            Input('load-world-button', 'n_clicks'),
+            State('variable-dropdown', 'value'),
+            prevent_initial_call=True
+        )
+        def load_world(n_clicks, selected_var):
+            """Display a world map demo"""
+            if n_clicks is None or n_clicks == 0:
+                return "Click 'Load World' to see the world map", {'display': 'none'}
+
+            if not selected_var:
+                return "Please select a variable first", {'display': 'none'}
+
+            try:
+                world_figure = self._create_world_map_demo(selected_var)
+                if world_figure is None:
+                    return "Error: Could not create world map", {'display': 'none'}
+
+                return dcc.Graph(figure=world_figure, config={"displayModeBar": True, "scrollZoom": True}), {'display': 'block'}
+
+            except Exception as e:
+                return f"Error: {str(e)}", {'display': 'none'}
+
+        # Callback for extracting image and showing in separate container
+        @self.app.callback(
+            Output('raster-container', 'children'),
+            Input('extract-image-button', 'n_clicks'),
             State('variable-dropdown', 'value'),
             State('selected-dimensions-store', 'data'),
             State('data-filter-min', 'value'),
             State('data-filter-max', 'value'),
             prevent_initial_call=True
         )
-        def show_plot(n_clicks, selected_var, selected_dims, filter_min, filter_max):
-            """Display a plot of the selected data"""
+        def extract_image(n_clicks, selected_var, selected_dims, filter_min, filter_max):
+            """Generate raster image and display in sidebar"""
+            print(
+                f"Extract image called with n_clicks={n_clicks}, var={selected_var}")
+
             if n_clicks is None or n_clicks == 0:
-                return "Click 'Show Plot' to generate a plot", {'display': 'none'}
+                return []
 
             if not selected_var or not selected_dims:
-                return "Please select a variable and dimensions first", {'display': 'none'}
+                return [html.P("Please select a variable and dimensions first", className="text-muted text-center")]
 
             try:
+                print("Getting subsetted data...")
                 # Get subsetted data
                 subsetted_data = self._get_subsetted_data(
                     selected_var, selected_dims)
                 if subsetted_data is None:
-                    return "Error: Could not subset data", {'display': 'none'}
+                    return [html.P("Error: Could not subset data", className="text-danger text-center")]
 
-                # Create and return plot
-                plot_figure = self._create_plot(
-                    subsetted_data, selected_var, filter_min, filter_max)
-                if plot_figure is None:
-                    return "Error: Could not create plot", {'display': 'none'}
+                print("Finding spatial dimensions...")
+                # Find spatial dimensions
+                lat_dim = None
+                lon_dim = None
+                for dim in subsetted_data.dims:
+                    dim_lower = dim.lower()
+                    if 'lat' in dim_lower or 'y' in dim_lower:
+                        lat_dim = dim
+                    elif 'lon' in dim_lower or 'x' in dim_lower:
+                        lon_dim = dim
 
-                return dcc.Graph(figure=plot_figure, config={"displayModeBar": True, "scrollZoom": True}), {'display': 'block'}
+                if not lat_dim or not lon_dim:
+                    return [html.P("Error: No spatial dimensions found", className="text-danger text-center")]
+
+                print(
+                    f"Creating raster image with lat_dim={lat_dim}, lon_dim={lon_dim}")
+                # Create raster image
+                image_path = self.create_raster_image(
+                    subsetted_data, selected_var, lat_dim, lon_dim)
+
+                print("Storing data for overlay...")
+                # Store the current variable and image data for overlay button
+                self.current_raster_var = selected_var
+                self.current_raster_data = subsetted_data
+                self.current_lat_dim = lat_dim
+                self.current_lon_dim = lon_dim
+                self.current_raster_image = image_path  # This is now base64 data
+
+                print("Creating sidebar content...")
+                # Create container with base64 image
+                container_content = [
+                    html.H6(f"📊 {selected_var}", className="text-center mb-2"),
+                    html.Img(
+                        src=image_path,  # This is now base64 data
+                        style={'width': '100%', 'height': 'auto'},
+                        className="raster-thumbnail"
+                    ),
+                    html.P("Raster image generated successfully!",
+                           className="text-success text-center mt-2", style={'fontSize': '12px'}),
+                    html.Br(),
+                    dbc.Button('Overlay on Map', id='overlay-button',
+                               color='success', size='sm', className='w-100')
+                ]
+
+                print("Returning container content successfully!")
+                return container_content
+
+            except Exception as e:
+                print(f"Error in extract_image: {str(e)}")
+                print(f"Exception type: {type(e)}")
+                import traceback
+                traceback.print_exc()
+                return [html.P(f"Error: {str(e)}", className="text-danger text-center")]
+
+        # Callback for overlaying image on world map
+        @self.app.callback(
+            [Output('map-container', 'children', allow_duplicate=True),
+             Output('map-container', 'style', allow_duplicate=True)],
+            Input('overlay-button', 'n_clicks'),
+            prevent_initial_call=True
+        )
+        def overlay_on_map(n_clicks):
+            """Overlay the generated raster image on the world map"""
+            if n_clicks is None or n_clicks == 0:
+                return "Click 'Overlay on Map' to see the result", {'display': 'none'}
+
+            try:
+                if not hasattr(self, 'current_raster_var'):
+                    return "Error: No raster image generated yet", {'display': 'none'}
+
+                # Get the stored data
+                selected_var = self.current_raster_var
+                subsetted_data = self.current_raster_data
+                lat_dim = self.current_lat_dim
+                lon_dim = self.current_lon_dim
+
+                # Get the stored base64 image data
+                if not hasattr(self, 'current_raster_image'):
+                    return "Error: No raster image data found", {'display': 'none'}
+
+                image_src = self.current_raster_image
+
+                # Create world map with overlay
+                overlay_figure = self._create_world_map_with_overlay(
+                    selected_var, image_path, subsetted_data, lat_dim, lon_dim)
+
+                if overlay_figure is None:
+                    return "Error: Could not create overlay", {'display': 'none'}
+
+                return dcc.Graph(figure=overlay_figure, config={"displayModeBar": True, "scrollZoom": True}), {'display': 'block'}
 
             except Exception as e:
                 return f"Error: {str(e)}", {'display': 'none'}
@@ -652,7 +765,9 @@ class DataManager:
         return fig
 
     def _create_2d_heatmap(self, values, data_array, variable_name, lat_dim, lon_dim):
-        """Create a 2D heatmap for spatial data"""
+        """Create a 2D heatmap using Plotly"""
+        print("Creating 2D heatmap...")
+
         lats = data_array.coords[lat_dim].values
         lons = data_array.coords[lon_dim].values
 
@@ -661,28 +776,242 @@ class DataManager:
             if values.shape == (lons.size, lats.size):
                 values = values.T
             else:
-                # Try to reshape if possible
                 values = values.reshape(lats.size, lons.size)
 
-        fig = go.Figure(go.Heatmap(
-            z=values,
-            x=lons,
-            y=lats,
+        # For very large datasets, downsample for performance
+        max_resolution = 300  # Keep it manageable
+        if lats.size > max_resolution or lons.size > max_resolution:
+            lat_factor = max(1, lats.size // max_resolution)
+            lon_factor = max(1, lons.size // max_resolution)
+
+            values_downsampled = values[::lat_factor, ::lon_factor]
+            lats_downsampled = lats[::lat_factor]
+            lons_downsampled = lons[::lon_factor]
+
+            print(
+                f"Downsampled from {values.shape} to {values_downsampled.shape}")
+        else:
+            values_downsampled = values
+            lats_downsampled = lats
+            lons_downsampled = lons
+
+        # Create the heatmap
+        fig = go.Figure(data=go.Heatmap(
+            z=values_downsampled,
+            x=lons_downsampled,
+            y=lats_downsampled,
             colorscale='Viridis',
-            colorbar=dict(title=variable_name),
-            zmin=np.nanmin(values),
-            zmax=np.nanmax(values),
-            hoverongaps=False
+            hoverongaps=False,
+            hovertemplate='<b>%{y:.3f}°N, %{x:.3f}°E</b><br>' +
+            f'{variable_name}: %{{z:.3g}}<br>' +
+            '<extra></extra>',
+            showscale=True,
+            colorbar=dict(
+                title=f"{variable_name}",
+                x=1.02,
+                len=0.8
+            )
         ))
 
+        # Update layout
         fig.update_layout(
-            title=f"{variable_name} Spatial Plot",
-            xaxis_title=f"{lon_dim} (Longitude)",
-            yaxis_title=f"{lat_dim} (Latitude)",
-            height=600,
-            template="plotly_white"
+            title=dict(
+                text=f"{variable_name} Heatmap",
+                font=dict(size=20, color='#2c3e50'),
+                x=0.5,
+                y=0.95
+            ),
+            height=700,
+            width=None,
+            margin=dict(l=0, r=0, t=80, b=0),
+            showlegend=False
         )
 
+        print("2D heatmap created successfully!")
+        return fig
+
+    def _create_world_map_demo(self, variable_name):
+        """Create a simple demo world map without data overlay"""
+        print("Creating simple world map demo...")
+
+        # Create a basic world map without data first
+        fig = go.Figure()
+
+        # Add a simple trace to initialize the map
+        fig.add_trace(go.Scattergeo(
+            lon=[0],  # Just one point at prime meridian
+            lat=[0],  # Equator
+            mode='markers',
+            marker=dict(size=1, color='red'),
+            showlegend=False
+        ))
+
+        # Update layout with proper geographic settings
+        fig.update_layout(
+            title=dict(
+                text=f"🌍 World Map Demo - {variable_name}",
+                font=dict(size=20, color='#2c3e50'),
+                x=0.5,
+                y=0.95
+            ),
+            height=700,
+            width=None,
+            # Simple geographic layout
+            geo=dict(
+                scope='world',
+                showland=True,
+                showocean=True,
+                showcoastlines=True,
+                coastlinecolor='rgb(128,128,128)',
+                coastlinewidth=1,
+                landcolor='rgb(243,243,243)',
+                oceancolor='rgb(230,230,250)',
+                showcountries=True,
+                countrycolor='rgb(128,128,128)',
+                countrywidth=0.5,
+                showframe=False,
+                projection_type='natural earth',
+                projection=dict(scale=1.2),
+                center=dict(lon=0, lat=30)
+            ),
+            margin=dict(l=0, r=0, t=80, b=0),
+            showlegend=False
+        )
+
+        print("World map created successfully!")
+        return fig
+
+    def create_raster_image(self, data_array, variable_name, lat_dim, lon_dim):
+        """Create a raster image from the data array and save it"""
+        print("Creating raster image...")
+
+        import matplotlib.pyplot as plt
+        import os
+
+        lats = data_array.coords[lat_dim].values
+        lons = data_array.coords[lon_dim].values
+        values = data_array.values
+
+        # Ensure proper alignment
+        if values.shape != (lats.size, lons.size):
+            if values.shape == (lons.size, lats.size):
+                values = values.T
+            else:
+                values = values.reshape(lats.size, lons.size)
+
+        # For large datasets, downsample for performance
+        max_resolution = 200
+        if lats.size > max_resolution or lons.size > max_resolution:
+            lat_factor = max(1, lats.size // max_resolution)
+            lon_factor = max(1, lons.size // max_resolution)
+
+            values_downsampled = values[::lat_factor, ::lon_factor]
+            lats_downsampled = lats[::lat_factor]
+            lons_downsampled = lons[::lon_factor]
+
+            print(
+                f"Downsampled from {values.shape} to {values_downsampled.shape}")
+        else:
+            values_downsampled = values
+            lats_downsampled = lats
+            lons_downsampled = lons
+
+        # Create the plot
+        plt.figure(figsize=(10, 8))
+        plt.imshow(values_downsampled,
+                   extent=[lons_downsampled.min(), lons_downsampled.max(),
+                           lats_downsampled.min(), lats_downsampled.max()],
+                   aspect='auto', cmap='viridis', origin='lower')
+        plt.colorbar(label=variable_name)
+        plt.title(f"{variable_name} Raster")
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
+
+        # Create a temporary directory for images (not in assets)
+        import tempfile
+        temp_dir = os.path.join(os.path.dirname(__file__), 'temp_images')
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Save the image to temp directory
+        image_path = os.path.join(temp_dir, f'raster_{variable_name}.png')
+        plt.savefig(image_path, dpi=150, bbox_inches='tight', pad_inches=0.1)
+        plt.close()
+
+        print("Raster image converted to base64 successfully")
+        return image_src
+
+    def _create_world_map_with_overlay(self, variable_name, image_src, data_array, lat_dim, lon_dim):
+        """Create a world map with raster image overlay"""
+        print("Creating world map with raster overlay...")
+
+        lats = data_array.coords[lat_dim].values
+        lons = data_array.coords[lon_dim].values
+
+        # Get the geographic bounds
+        lat_min, lat_max = lats.min(), lats.max()
+        lon_min, lon_max = lons.min(), lons.max()
+
+        # Create the world map
+        fig = go.Figure()
+
+        # Add the raster image as an image overlay
+        fig.add_trace(go.Scattergeo(
+            lon=[lon_min, lon_max],
+            lat=[lat_min, lat_max],
+            mode='markers',
+            marker=dict(size=1, color='red'),
+            showlegend=False
+        ))
+
+        # Add the image overlay using the base64 data
+        fig.add_layout_image(
+            dict(
+                source=image_src,  # This is now base64 data
+                xref="x",
+                yref="y",
+                x=lon_min,
+                y=lat_max,
+                sizex=lon_max - lon_min,
+                sizey=lat_max - lat_min,
+                sizing="stretch",
+                layer="below"
+            )
+        )
+
+        # Update layout with proper geographic settings
+        fig.update_layout(
+            title=dict(
+                text=f"🌍 {variable_name} Global Distribution",
+                font=dict(size=20, color='#2c3e50'),
+                x=0.5,
+                y=0.95
+            ),
+            height=700,
+            width=None,
+            geo=dict(
+                scope='world',
+                showland=True,
+                showocean=True,
+                showcoastlines=True,
+                coastlinecolor='rgb(128,128,128)',
+                coastlinewidth=1,
+                landcolor='rgb(243,243,243)',
+                oceancolor='rgb(230,230,250)',
+                showcountries=True,
+                countrywidth=0.5,
+                showframe=False,
+                projection_type='natural earth',
+                projection=dict(scale=1.2),
+                center=dict(lon=(lon_min + lon_max) / 2,
+                            lat=(lat_min + lat_max) / 2),
+                lonaxis=dict(range=[lon_min - 5, lon_max + 5]),
+                lataxis=dict(range=[lat_min - 5, lat_max + 5])
+            ),
+            margin=dict(l=0, r=0, t=80, b=0),
+            showlegend=False
+        )
+
+        print("World map with raster overlay created successfully!")
         return fig
 
     def _create_fallback_plot(self, values, variable_name):

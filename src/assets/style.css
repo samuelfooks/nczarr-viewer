@@ -11,14 +11,16 @@ body {
     overflow: auto;
 }
 
-.top-container, .bottom-container {
+.top-container,
+.bottom-container {
     display: flex;
     width: 90%;
     margin-bottom: 20px;
     flex-grow: 1;
 }
 
-.left-container, .right-container {
+.left-container,
+.right-container {
     flex: 1;
     padding: 10px;
     display: flex;
@@ -28,10 +30,14 @@ body {
 .left-container {
     margin-right: 20px;
 }
-#variable-dropdown, #dimension-checklist-container, #dimension-dropdowns-container {
+
+#variable-dropdown,
+#dimension-checklist-container,
+#dimension-dropdowns-container {
     width: 100%;
     flex-grow: 1;
-    min-width: 800px; /* Ensure a minimum width */
+    min-width: 800px;
+    /* Ensure a minimum width */
 }
 
 .map-container {
@@ -58,6 +64,7 @@ button {
 button:hover {
     background-color: #555;
 }
+
 .Select-menu-outer {
     background-color: #333 !important;
     color: #fff !important;
@@ -77,26 +84,67 @@ button:hover {
     background-color: #89253e !important;
     color: #fff !important;
 }
+
 #map {
     width: 100%;
     height: 100%;
     display: block;
 }
+
 /* Container styling for dataset info */
 .dataset-info-container {
     margin: 20px;
     padding: 10px;
     border-radius: 8px;
-    background-color: #f8f9fa; /* Light gray background for contrast */
-    border: 1px solid #dee2e6; /* Border color to define the edges */
+    background-color: #f8f9fa;
+    /* Light gray background for contrast */
+    border: 1px solid #dee2e6;
+    /* Border color to define the edges */
+}
+
+/* Raster thumbnail styling */
+.raster-thumbnail {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.raster-thumbnail:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    transform: scale(1.02);
+}
+
+.raster-thumbnail:active {
+    transform: scale(0.98);
+}
+
+/* Sidebar styling */
+#raster-sidebar {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#raster-sidebar h6 {
+    color: #495057;
+    font-weight: 600;
+}
+
+#raster-sidebar p {
+    color: #6c757d;
+    font-size: 12px;
 }
 
 /* Styling for the dataset info table */
 #dataset-info-table {
     width: 100%;
-    font-size: 12px; /* Smaller font size */
-    color: #333; /* Darker text color for contrast */
-    background-color: #ffffff; /* White background */
+    font-size: 12px;
+    /* Smaller font size */
+    color: #333;
+    /* Darker text color for contrast */
+    background-color: #ffffff;
+    /* White background */
     border-collapse: collapse;
     margin-top: 10px;
 }
@@ -108,53 +156,160 @@ button:hover {
 
 /* Table cells */
 #dataset-info-table td {
-    padding: 6px 10px; /* Padding for cells */
-    vertical-align: top; /* Align text to the top */
+    padding: 6px 10px;
+    /* Padding for cells */
+    vertical-align: top;
+    /* Align text to the top */
 }
 
 /* Dataset URL section */
 #dataset-url-div h3 {
-    font-size: 16px; /* Smaller font size for the heading */
-    color : black;
+    font-size: 16px;
+    /* Smaller font size for the heading */
+    color: black;
     margin-bottom: 5px;
 }
 
 #dataset-url-div p {
-    font-size: 12px; /* Smaller font size for the URL text */
-    color: #007bff; /* Blue color for the URL text */
-    word-wrap: break-word; /* Wrap long URLs */
+    font-size: 12px;
+    /* Smaller font size for the URL text */
+    color: #007bff;
+    /* Blue color for the URL text */
+    word-wrap: break-word;
+    /* Wrap long URLs */
 }
 
 /* Error message styling */
 .dataset-error {
-    color: #dc3545; /* Red color for error messages */
+    color: #dc3545;
+    /* Red color for error messages */
     font-size: 14px;
     font-weight: bold;
 }
+
 /* Custom CSS for the Data Array Display Box */
 #data-array-display {
-    font-size: 18px; /* Increase font size for readability */
-    font-family: 'Courier New', monospace; /* Monospace font for a code-like appearance */
-    color: #e0e0e0; /* Light gray text color */
-    background-color: #2e3440; /* Dark background color (Cobalt/Zsh-like) */
-    border: 1px solid #4c566a; /* Subtle border color */
-    border-radius: 8px; /* Rounded corners */
-    padding: 20px; /* Space inside the box */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Stronger shadow for a modern look */
-    margin-top: 20px; /* Space above the box */
-    margin-bottom: 20px; /* Space below the box */
-    max-width: 600px; /* Limit the width */
-    word-wrap: break-word; /* Ensure text wraps within the box */
-    text-align: center; /* Center-align text */
-    overflow-wrap: break-word; /* Handle long words or strings */
+    font-size: 18px;
+    /* Increase font size for readability */
+    font-family: 'Courier New', monospace;
+    /* Monospace font for a code-like appearance */
+    color: #e0e0e0;
+    /* Light gray text color */
+    background-color: #2e3440;
+    /* Dark background color (Cobalt/Zsh-like) */
+    border: 1px solid #4c566a;
+    /* Subtle border color */
+    border-radius: 8px;
+    /* Rounded corners */
+    padding: 20px;
+    /* Space inside the box */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    /* Stronger shadow for a modern look */
+    margin-top: 20px;
+    /* Space above the box */
+    margin-bottom: 20px;
+    /* Space below the box */
+    max-width: 600px;
+    /* Limit the width */
+    word-wrap: break-word;
+    /* Ensure text wraps within the box */
+    text-align: center;
+    /* Center-align text */
+    overflow-wrap: break-word;
+    /* Handle long words or strings */
 }
 
 #data-array-display code {
-    color: #88c0d0; /* Light blue for code-like content */
+    color: #88c0d0;
+    /* Light blue for code-like content */
 }
 
 #data-array-display .highlight {
-    background-color: #3b4252; /* Slightly lighter background for highlights */
-    padding: 2px 4px; /* Padding for highlight background */
-    border-radius: 4px; /* Rounded corners for highlights */
+    background-color: #3b4252;
+    /* Slightly lighter background for highlights */
+    padding: 2px 4px;
+    /* Padding for highlight background */
+    border-radius: 4px;
+    /* Rounded corners for highlights */
+}
+
+/* Leaflet Map Styling */
+.leaflet-container {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.leaflet-control-layers {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.leaflet-control-layers-toggle {
+    background-color: #fff !important;
+    border: 2px solid #ddd !important;
+    border-radius: 4px !important;
+}
+
+.leaflet-control-zoom {
+    border-radius: 6px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.leaflet-control-zoom a {
+    background-color: #fff !important;
+    border: 1px solid #ddd !important;
+    color: #333 !important;
+    font-weight: bold !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background-color: #f8f9fa !important;
+    border-color: #007bff !important;
+}
+
+.leaflet-control-scale {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+}
+
+.leaflet-control-fullscreen {
+    background-color: #fff !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+}
+
+.leaflet-control-fullscreen:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* Map container enhancements */
+.map-visualization-container {
+    transition: all 0.3s ease;
+}
+
+.map-visualization-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Heatmap legend styling */
+.leaflet-control-legend {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-radius: 6px !important;
+    padding: 10px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    min-width: 150px !important;
+}
+
+/* Responsive map adjustments */
+@media (max-width: 768px) {
+    .leaflet-container {
+        height: 400px !important;
+    }
+
+    .map-visualization-container {
+        padding: 10px !important;
+    }
 }

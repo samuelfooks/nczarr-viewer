@@ -245,6 +245,15 @@ wheels = [
 ]
 
 [[package]]
+name = "cachelib"
+version = "0.13.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1d/69/0b5c1259e12fbcf5c2abe5934b5c0c1294ec0f845e2b4b2a51a91d79a4fb/cachelib-0.13.0.tar.gz", hash = "sha256:209d8996e3c57595bee274ff97116d1d73c4980b2fd9a34c7846cd07fd2e1a48", size = 34418 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9b/42/960fc9896ddeb301716fdd554bab7941c35fb90a1dc7260b77df3366f87f/cachelib-0.13.0-py3-none-any.whl", hash = "sha256:8c8019e53b6302967d4e8329a504acf75e7bc46130291d30188a6e4e58162516", size = 20914 },
+]
+
+[[package]]
 name = "cartopy"
 version = "0.24.1"
 source = { registry = "https://pypi.org/simple" }
@@ -412,6 +421,15 @@ wheels = [
 ]
 
 [[package]]
+name = "colorcet"
+version = "3.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5f/c3/ae78e10b7139d6b7ce080d2e81d822715763336aa4229720f49cb3b3e15b/colorcet-3.1.0.tar.gz", hash = "sha256:2921b3cd81a2288aaf2d63dbc0ce3c26dcd882e8c389cc505d6886bf7aa9a4eb", size = 2183107 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/c6/9963d588cc3d75d766c819e0377a168ef83cf3316a92769971527a1ad1de/colorcet-3.1.0-py3-none-any.whl", hash = "sha256:2a7d59cc8d0f7938eeedd08aad3152b5319b4ba3bcb7a612398cc17a384cb296", size = 260286 },
+]
+
+[[package]]
 name = "colour"
 version = "0.1.5"
 source = { registry = "https://pypi.org/simple" }
@@ -576,12 +594,66 @@ wheels = [
 ]
 
 [[package]]
+name = "dash-extensions"
+version = "2.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dash", marker = "python_full_version >= '3.11'" },
+    { name = "dataclass-wizard", marker = "python_full_version >= '3.11'" },
+    { name = "flask-caching", marker = "python_full_version >= '3.11'" },
+    { name = "jsbeautifier", marker = "python_full_version >= '3.11'" },
+    { name = "more-itertools", marker = "python_full_version >= '3.11'" },
+    { name = "pydantic", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/71/12/acaa0d1740bb31741dc984e833cc9c481ae643f66038e972503f3f1765ba/dash_extensions-2.0.4.tar.gz", hash = "sha256:fdab16f15349422c28e1fe3bf39f064f96fc54eb1dcd8d02440a45a63d8b1a6a", size = 1008215 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/4f/af00ec901b3be747877f69fe91ca548080105d47d92688229b0a058ca3f7/dash_extensions-2.0.4-py3-none-any.whl", hash = "sha256:fae5cbac985f28cbb330be3600d784f69416f6fb6016e25c0f14e436e5cc0cd1", size = 1028796 },
+]
+
+[[package]]
 name = "dash-html-components"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/14/c6/957d5e83b620473eb3c8557a253fb01c6a817b10ca43d3ff9d31796f32a6/dash_html_components-2.0.0.tar.gz", hash = "sha256:8703a601080f02619a6390998e0b3da4a5daabe97a1fd7a9cebc09d015f26e50", size = 3840 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/75/65/1b16b853844ef59b2742a7de74a598f376ac0ab581f0dcc34db294e5c90e/dash_html_components-2.0.0-py3-none-any.whl", hash = "sha256:b42cc903713c9706af03b3f2548bda4be7307a7cf89b7d6eae3da872717d1b63", size = 4092 },
+]
+
+[[package]]
+name = "dash-leaflet"
+version = "1.0.15"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.11'",
+]
+dependencies = [
+    { name = "dash", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a0/a3/f38986785869b67721984a2c131372bbd720e5a00bb4769e417f3a8c7000/dash_leaflet-1.0.15.tar.gz", hash = "sha256:79a3e19b0be9a5cf23873a0cd73153de224cbd756ddb30e2ffcee9ba23875e40", size = 243078 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/26/6a/3a75338d37c45c10a552c73ccd68f7ede9c9b36fa9ef39dbf710a662ccc0/dash_leaflet-1.0.15-py3-none-any.whl", hash = "sha256:d7d06228a868bcf11120e1f7cb95db64c29c412b743686a9a8e1b30ac54a794e", size = 285497 },
+]
+
+[[package]]
+name = "dash-leaflet"
+version = "1.1.3"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12'",
+    "python_full_version == '3.11.*'",
+]
+dependencies = [
+    { name = "colorcet", marker = "python_full_version >= '3.11'" },
+    { name = "dash", marker = "python_full_version >= '3.11'" },
+    { name = "dash-extensions", marker = "python_full_version >= '3.11'" },
+    { name = "dash-svg", marker = "python_full_version >= '3.11'" },
+    { name = "geobuf", marker = "python_full_version >= '3.11'" },
+    { name = "protobuf", marker = "python_full_version >= '3.11'" },
+    { name = "pyyaml", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c9/19/4fd29ef8db9c6a5a73a34714ccca8349c8825c836adb98451c46457bd2e8/dash_leaflet-1.1.3.tar.gz", hash = "sha256:fc7c6da57b71715cfda5ac187ead2ac600f54ccc2cfac8c396f2f426f75f40ce", size = 250248 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1c/1a/c1d6576f93f8e67d71c0218e1c9493055cb724b035615d930ee08ca34419/dash_leaflet-1.1.3-py3-none-any.whl", hash = "sha256:8c8d761c0eb6817812afab1b0ca21fb2272515901795db581f7154f208051f37", size = 294625 },
 ]
 
 [[package]]
@@ -596,10 +668,14 @@ dependencies = [
     { name = "dash-bootstrap-components" },
     { name = "dash-core-components" },
     { name = "dash-html-components" },
+    { name = "dash-leaflet", version = "1.0.15", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "dash-leaflet", version = "1.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "folium" },
     { name = "fsspec" },
     { name = "leafmap" },
+    { name = "matplotlib" },
     { name = "netcdf4" },
+    { name = "pillow" },
     { name = "pip" },
     { name = "plotly" },
     { name = "pyproj" },
@@ -617,15 +693,27 @@ requires-dist = [
     { name = "dash-bootstrap-components" },
     { name = "dash-core-components" },
     { name = "dash-html-components" },
+    { name = "dash-leaflet", specifier = ">=1.0.15" },
     { name = "folium" },
     { name = "fsspec" },
     { name = "leafmap" },
+    { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "netcdf4" },
+    { name = "pillow", specifier = ">=11.2.1" },
     { name = "pip", specifier = ">=25.2" },
     { name = "plotly" },
     { name = "pyproj", specifier = ">=3.7.1" },
     { name = "xarray" },
     { name = "zarr" },
+]
+
+[[package]]
+name = "dash-svg"
+version = "0.0.12"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/26/b1/a17887bd3243925d8801319a5f9a6df4379426c43f54d39652facbab10a2/dash_svg-0.0.12.tar.gz", hash = "sha256:a7115bf437d770b822c2dd53b9d9a981210619b7d17c925cbee04905fc761b4e", size = 671120 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f4/76/55b690616441568d5cad9eb34d4d3e968b39bdaeeb6850dc5106bd8289a6/dash_svg-0.0.12-py3-none-any.whl", hash = "sha256:0ec26694ccfc4f6c65d20254d76b2cd3680975ca5fbe0056956c3992551c727b", size = 810151 },
 ]
 
 [[package]]
@@ -645,6 +733,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6f/05/ab394614a58150fb3cdf800d9cb732ed4750ee981b665b2a40d5c014ba03/dask-2025.4.0.tar.gz", hash = "sha256:32a1bd6b30664c15a8edb475008ab05d1f158d957941386d573648de289ad436", size = 10942047 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/59/d1/626b288c92492b5b0cb9ddeaba5e0aee441189d7d6eaed1c2c14c24da68a/dask-2025.4.0-py3-none-any.whl", hash = "sha256:fe5d75fa45b4a024f7a3bb90b1cf6e12c784a526ea38e7d5a9934ab005ca3004", size = 1447359 },
+]
+
+[[package]]
+name = "dataclass-wizard"
+version = "0.35.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version >= '3.11' and python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f2/61/c432fc30841214df594c82e7c39dd8e46f6c60357b16d5e578e6258b178c/dataclass-wizard-0.35.1.tar.gz", hash = "sha256:18c780e3c574c3534cb2bbc447025cff140f0e640cd98e143a7d234c6445d09e", size = 295591 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/49/34/a66cfdd36d9155800c00800211ecc75059db71ad3e79100b50929ed87af0/dataclass_wizard-0.35.1-py2.py3-none-any.whl", hash = "sha256:30858e14d780a40792fa190d55220a12cd0ef02a3d8fb8373b1eb4363d4b5549", size = 176536 },
 ]
 
 [[package]]
@@ -709,6 +809,15 @@ wheels = [
 ]
 
 [[package]]
+name = "editorconfig"
+version = "0.17.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/3a/a61d9a1f319a186b05d14df17daea42fcddea63c213bcd61a929fb3a6796/editorconfig-0.17.1.tar.gz", hash = "sha256:23c08b00e8e08cc3adcddb825251c497478df1dada6aefeb01e626ad37303745", size = 14695 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/fd/a40c621ff207f3ce8e484aa0fc8ba4eb6e3ecf52e15b42ba764b457a9550/editorconfig-0.17.1-py3-none-any.whl", hash = "sha256:1eda9c2c0db8c16dbd50111b710572a5e6de934e39772de1959d41f64fc17c82", size = 16360 },
+]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.2.2"
 source = { registry = "https://pypi.org/simple" }
@@ -758,6 +867,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/41/e1/d104c83026f8d35dfd2c261df7d64738341067526406b40190bc063e829a/flask-3.0.3.tar.gz", hash = "sha256:ceb27b0af3823ea2737928a4d99d125a06175b8512c445cbd9a9ce200ef76842", size = 676315 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/61/80/ffe1da13ad9300f87c93af113edd0638c75138c42a0994becfacac078c06/flask-3.0.3-py3-none-any.whl", hash = "sha256:34e815dfaa43340d1d15a5c3a02b8476004037eb4840b34910c6e21679d288f3", size = 101735 },
+]
+
+[[package]]
+name = "flask-caching"
+version = "2.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cachelib", marker = "python_full_version >= '3.11'" },
+    { name = "flask", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e2/80/74846c8af58ed60972d64f23a6cd0c3ac0175677d7555dff9f51bf82c294/flask_caching-2.3.1.tar.gz", hash = "sha256:65d7fd1b4eebf810f844de7de6258254b3248296ee429bdcb3f741bcbf7b98c9", size = 67560 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/00/bb/82daa5e2fcecafadcc8659ce5779679d0641666f9252a4d5a2ae987b0506/Flask_Caching-2.3.1-py3-none-any.whl", hash = "sha256:d3efcf600e5925ea5a2fcb810f13b341ae984f5b52c00e9d9070392f3ca10761", size = 28916 },
 ]
 
 [[package]]
@@ -933,6 +1055,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/09/6a/37e6b70c5bda3161e40265861e63b64a86bfc6ca6a8f1c35328a675c84fd/gdown-5.2.0.tar.gz", hash = "sha256:2145165062d85520a3cd98b356c9ed522c5e7984d408535409fd46f94defc787", size = 284647 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/70/e07c381e6488a77094f04c85c9caf1c8008cdc30778f7019bc52e5285ef0/gdown-5.2.0-py3-none-any.whl", hash = "sha256:33083832d82b1101bdd0e9df3edd0fbc0e1c5f14c9d8c38d2a35bf1683b526d6", size = 18235 },
+]
+
+[[package]]
+name = "geobuf"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click", marker = "python_full_version >= '3.11'" },
+    { name = "protobuf", marker = "python_full_version >= '3.11'" },
+    { name = "six", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ed/a9/166da74c1e3b8c6b9644c244de75fa5e001b01fe06311721c84471b9296e/geobuf-2.0.0.tar.gz", hash = "sha256:96a347cd8443cc53a65f34f958b45b0e45c4cca8f1ca3b72078a3aec97605a72", size = 46155 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f3/ec/e174665e4b824ecfad1555746a5bc13eb26de85c66ec61f55eb097c433f0/geobuf-2.0.0-py3-none-any.whl", hash = "sha256:01e89318861a5f80a2980c1fe602c1f378439cbfd3a0d99f1991550956c4ecf6", size = 9718 },
 ]
 
 [[package]]
@@ -1205,6 +1341,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/00/2a/e867e8531cf3e36b41201936b7fa7ba7b5702dbef42922193f05c8976cd6/jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe", size = 25843 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980", size = 20256 },
+]
+
+[[package]]
+name = "jsbeautifier"
+version = "1.15.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "editorconfig", marker = "python_full_version >= '3.11'" },
+    { name = "six", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ea/98/d6cadf4d5a1c03b2136837a435682418c29fdeb66be137128544cecc5b7a/jsbeautifier-1.15.4.tar.gz", hash = "sha256:5bb18d9efb9331d825735fbc5360ee8f1aac5e52780042803943aa7f854f7592", size = 75257 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2d/14/1c65fccf8413d5f5c6e8425f84675169654395098000d8bddc4e9d3390e1/jsbeautifier-1.15.4-py3-none-any.whl", hash = "sha256:72f65de312a3f10900d7685557f84cb61a9733c50dcc27271a39f5b0051bf528", size = 94707 },
 ]
 
 [[package]]
@@ -1584,6 +1733,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/99/5b/a36a337438a14116b16480db471ad061c36c3694df7c2084a0da7ba538b7/matplotlib_inline-0.1.7.tar.gz", hash = "sha256:8423b23ec666be3d16e16b60bdd8ac4e86e840ebd1dd11a30b9f117f2fa0ab90", size = 8159 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/8e/9ad090d3553c280a8060fbf6e24dc1c0c29704ee7d1c372f0c174aa59285/matplotlib_inline-0.1.7-py3-none-any.whl", hash = "sha256:df192d39a4ff8f21b1895d72e6a13f5fcc5099f00fa84384e0ea28c2cc0653ca", size = 9899 },
+]
+
+[[package]]
+name = "more-itertools"
+version = "10.7.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ce/a0/834b0cebabbfc7e311f30b46c8188790a37f89fc8d756660346fe5abfd09/more_itertools-10.7.0.tar.gz", hash = "sha256:9fddd5403be01a94b204faadcff459ec3568cf110265d3c54323e1e866ad29d3", size = 127671 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/9f/7ba6f94fc1e9ac3d2b853fdff3035fb2fa5afbed898c4a72b8a020610594/more_itertools-10.7.0-py3-none-any.whl", hash = "sha256:d43980384673cb07d2f7d2d918c616b30c659c089ee23953f601d6609c67510e", size = 65278 },
 ]
 
 [[package]]
@@ -2143,6 +2301,20 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/3e/66/2e90547d6b60180fb29e23dc87bd8c116517d4255240ec6d3f7dc23d1926/propcache-0.3.1-cp313-cp313t-win32.whl", hash = "sha256:359e81a949a7619802eb601d66d37072b79b79c2505e6d3fd8b945538411400d", size = 42573 },
     { url = "https://files.pythonhosted.org/packages/cb/8f/50ad8599399d1861b4d2b6b45271f0ef6af1b09b0a2386a46dbaf19c9535/propcache-0.3.1-cp313-cp313t-win_amd64.whl", hash = "sha256:e7fb9a84c9abbf2b2683fa3e7b0d7da4d8ecf139a1c635732a8bda29c5214b0e", size = 46757 },
     { url = "https://files.pythonhosted.org/packages/b8/d3/c3cb8f1d6ae3b37f83e1de806713a9b3642c5895f0215a62e1a4bd6e5e34/propcache-0.3.1-py3-none-any.whl", hash = "sha256:9a8ecf38de50a7f518c21568c80f985e776397b902f1ce0b01f799aba1608b40", size = 12376 },
+]
+
+[[package]]
+name = "protobuf"
+version = "6.32.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/df/fb4a8eeea482eca989b51cffd274aac2ee24e825f0bf3cbce5281fa1567b/protobuf-6.32.0.tar.gz", hash = "sha256:a81439049127067fc49ec1d36e25c6ee1d1a2b7be930675f919258d03c04e7d2", size = 440614 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/18/df8c87da2e47f4f1dcc5153a81cd6bca4e429803f4069a299e236e4dd510/protobuf-6.32.0-cp310-abi3-win32.whl", hash = "sha256:84f9e3c1ff6fb0308dbacb0950d8aa90694b0d0ee68e75719cb044b7078fe741", size = 424409 },
+    { url = "https://files.pythonhosted.org/packages/e1/59/0a820b7310f8139bd8d5a9388e6a38e1786d179d6f33998448609296c229/protobuf-6.32.0-cp310-abi3-win_amd64.whl", hash = "sha256:a8bdbb2f009cfc22a36d031f22a625a38b615b5e19e558a7b756b3279723e68e", size = 435735 },
+    { url = "https://files.pythonhosted.org/packages/cc/5b/0d421533c59c789e9c9894683efac582c06246bf24bb26b753b149bd88e4/protobuf-6.32.0-cp39-abi3-macosx_10_9_universal2.whl", hash = "sha256:d52691e5bee6c860fff9a1c86ad26a13afbeb4b168cd4445c922b7e2cf85aaf0", size = 426449 },
+    { url = "https://files.pythonhosted.org/packages/ec/7b/607764ebe6c7a23dcee06e054fd1de3d5841b7648a90fd6def9a3bb58c5e/protobuf-6.32.0-cp39-abi3-manylinux2014_aarch64.whl", hash = "sha256:501fe6372fd1c8ea2a30b4d9be8f87955a64d6be9c88a973996cef5ef6f0abf1", size = 322869 },
+    { url = "https://files.pythonhosted.org/packages/40/01/2e730bd1c25392fc32e3268e02446f0d77cb51a2c3a8486b1798e34d5805/protobuf-6.32.0-cp39-abi3-manylinux2014_x86_64.whl", hash = "sha256:75a2aab2bd1aeb1f5dc7c5f33bcb11d82ea8c055c9becbb41c26a8c43fd7092c", size = 322009 },
+    { url = "https://files.pythonhosted.org/packages/9c/f2/80ffc4677aac1bc3519b26bc7f7f5de7fce0ee2f7e36e59e27d8beb32dd1/protobuf-6.32.0-py3-none-any.whl", hash = "sha256:ba377e5b67b908c8f3072a57b63e2c6a4cbd18aea4ed98d2584350dbf46f2783", size = 169287 },
 ]
 
 [[package]]

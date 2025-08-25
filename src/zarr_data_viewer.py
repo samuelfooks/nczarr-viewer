@@ -5,7 +5,6 @@ import dash_bootstrap_components as dbc
 from variables import VariableSelection
 from dimension import DimensionSelection
 from data import DataManager, DatasetLoader
-from layout_manager import ResetFunctionality
 
 
 class TimeoutException(Exception):
@@ -146,7 +145,7 @@ class ZarrDataViewerApp:
 }
 
 {
-  "backend": "xarray", 
+  "backend": "xarray",
   "engine": "netcdf4",
   "chunks": {"time": 1, "lat": 100, "lon": 100},
   "decode_timedelta": false
@@ -264,28 +263,38 @@ class ZarrDataViewerApp:
                     ], className='mb-3'),
                 ], width=12),
             ]),
-            # Fifth row: Plot Selected Data
+            # Fifth row: Plot Selected Data and Raster Sidebar
             dbc.Row([
+                # Main plot area
                 dbc.Col([
                     dbc.Card([
                         dbc.CardHeader("Plot Selected Data"),
                         dbc.CardBody([
-                            # html.Div([
-                            #     html.Label("Color Scale (Min/Max):", className="mb-1"),
-                            #     dbc.Input(id='color-min', type='number', placeholder='Color min', style={'width': '45%', 'display': 'inline-block', 'marginRight': '10px'}),
-                            #     dbc.Input(id='color-max', type='number', placeholder='Color max', style={'width': '45%', 'display': 'inline-block'}),
-                            # ], className='mb-2'),
                             dcc.Loading(html.Div([
                                 html.Div(
                                     id='map-container', children=[html.Img(id='map', style={'width': '100%', 'height': 'auto'})]),
                             ]), type='circle'),
-                            dbc.Button('Show Plot', id='show-plot-button',
+                            dbc.Button('Load World', id='load-world-button',
+                                       color='info', n_clicks=0, className='mt-2 me-2'),
+                            dbc.Button('Extract Image', id='extract-plot-button',
                                        color='success', n_clicks=0, className='mt-2'),
                         ])
                     ]),
                     dbc.Button('Reset', id='reset-button',
                                color='secondary', n_clicks=0, className='mt-3'),
-                ], width=12),
+                ], width=9),
+                # Raster images sidebar
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardHeader("Generated Raster Images"),
+                        dbc.CardBody([
+                            html.Div(id='raster-container', children=[
+                                html.P("Click 'Extract Image' to generate raster images",
+                                       className="text-muted text-center")
+                            ])
+                        ])
+                    ])
+                ], width=3),
             ]),
             # Metadata row: full width at the bottom
             dbc.Row([

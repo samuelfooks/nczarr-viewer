@@ -34,6 +34,9 @@ dependencies = [
     "copernicusmarine",
     "pyproj>=3.7.1",
     "pip>=25.2",
+    "dash-leaflet>=1.0.15",
+    "matplotlib>=3.10.1",
+    "pillow>=11.2.1",
 ]
 
 [project.urls]
