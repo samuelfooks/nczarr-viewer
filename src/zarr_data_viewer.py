@@ -99,6 +99,15 @@ class ZarrDataViewerApp:
                                     placeholder='Enter custom dataset URL or path',
                                     style={'width': '100%'}
                                 ),
+                                html.Div([
+                                    html.Small([
+                                        html.I("💡 Tip: For netcdf files on s3 storage, add ",
+                                               style={"color": "#6c757d"}),
+                                        html.Code("#mode=bytes", style={"backgroundColor": "#f8f9fa", "padding": "2px 4px", "borderRadius": "3px"}),
+                                        html.I(" at the end of the URL to ensure proper data access.",
+                                               style={"color": "#6c757d"})
+                                    ], style={"marginTop": "5px", "fontSize": "12px"})
+                                ]),
                                 html.Br(),
                                 html.Br(),
                                 html.Label("Backend Selection:",
@@ -186,7 +195,7 @@ class ZarrDataViewerApp:
                                             html.Li(
                                                 "The 'backend' field in JSON overrides the dropdown selection"),
                                             html.Li(
-                                                "For xarray: engine can be 'zarr', 'netcdf4', 'h5netcdf', 'cfgrib'"),
+                                                "For xarray: engine can be 'zarr', 'netcdf4'"),
                                             html.Li(
                                                 "For Copernicus Marine: engine can be 'copernicusmarinetoolbox' or 'custom_open_zarr.open_zarr'"),
                                             html.Li(
@@ -276,8 +285,7 @@ class ZarrDataViewerApp:
                                 html.Div(
                                     id='map-container', children=[html.Img(id='map', style={'width': '100%', 'height': 'auto'})]),
                             ]), type='circle'),
-                            dbc.Button('Load World', id='load-world-button',
-                                       color='info', n_clicks=0, className='mt-2 me-2'),
+
                             dbc.Button('Extract Image', id='extract-plot-button',
                                        color='success', n_clicks=0, className='mt-2'),
                         ])

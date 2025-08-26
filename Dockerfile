@@ -8,9 +8,10 @@ RUN apt-get update && apt-get install -y \
     proj-bin \
     libgeos-dev \
     libgdal-dev \
-    gdal-bin \
     libnetcdf-dev \
     libhdf5-dev \
+    libeccodes-dev \
+    gdal-bin \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv

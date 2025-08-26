@@ -22,6 +22,8 @@ Requires-Dist: aiohttp
 Requires-Dist: fsspec
 Requires-Dist: cartopy
 Requires-Dist: netCDF4
+Requires-Dist: cfgrib
+Requires-Dist: h5netcdf
 Requires-Dist: leafmap
 Requires-Dist: folium
 Requires-Dist: copernicusmarine

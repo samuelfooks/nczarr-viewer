@@ -4,6 +4,7 @@ pyproject.toml
 src/__init__.py
 src/data.py
 src/dimension.py
+src/setup.py
 src/variables.py
 src/zarr_data_viewer.py
 src/dash_nczarr_viewer.egg-info/PKG-INFO

@@ -22,7 +22,7 @@ class DatasetLoader:
         """Detect available backends for dataset loading"""
         backends = {
             'xarray': {
-                'engines': ['netcdf4', 'zarr', 'h5netcdf', 'cfgrib'],
+                'engines': ['netcdf4', 'zarr'],
                 'description': 'Standard xarray engines'
             }
         }
@@ -116,8 +116,6 @@ class DatasetLoader:
                 engine = 'netcdf4'
             elif '.zarr' in url:
                 engine = 'zarr'
-            elif '.grib' in url or '.grb' in url:
-                engine = 'cfgrib'
             else:
                 engine = 'netcdf4'  # Default
 
@@ -146,7 +144,7 @@ class DatasetLoader:
 
             # Try alternative engines if the first one fails
             alternative_engines = [
-                'netcdf4', 'zarr', 'h5netcdf', 'cfgrib'
+                'netcdf4', 'zarr'
             ]
             if engine in alternative_engines:
                 alternative_engines.remove(engine)
@@ -168,7 +166,16 @@ class DatasetLoader:
                         f"Alternative engine {alt_engine} failed: {alt_e}"
                     )
 
-            raise Exception(f"All engines failed. Last error: {e}")
+            # Provide helpful error message with tips
+            error_msg = f"All engines failed. Last error: {e}"
+            
+            # Add specific help for common issues
+            if "netcdf4" in str(e).lower() or "netcdf" in str(e).lower():
+                error_msg += "\n\n💡 NetCDF loading failed. Try these solutions:"
+                error_msg += "\n• For netcdf files on s3 storage: Add #mode=bytes at the end of the URL"
+                error_msg += "\n• Check if the file is corrupted or incomplete"
+            
+            raise Exception(error_msg)
 
     def _load_with_copernicusmarine(self, url, engine='default', **kwargs):
         """Load dataset using copernicusmarine backend"""
@@ -345,31 +352,7 @@ class DataManager:
             except Exception as e:
                 return f"Error: {str(e)}"
 
-        # Callback for loading world map
-        @self.app.callback(
-            [Output('map-container', 'children'),
-             Output('map-container', 'style')],
-            Input('load-world-button', 'n_clicks'),
-            State('variable-dropdown', 'value'),
-            prevent_initial_call=True
-        )
-        def load_world(n_clicks, selected_var):
-            """Display a world map demo"""
-            if n_clicks is None or n_clicks == 0:
-                return "Click 'Load World' to see the world map", {'display': 'none'}
 
-            if not selected_var:
-                return "Please select a variable first", {'display': 'none'}
-
-            try:
-                world_figure = self._create_world_map_demo(selected_var)
-                if world_figure is None:
-                    return "Error: Could not create world map", {'display': 'none'}
-
-                return dcc.Graph(figure=world_figure, config={"displayModeBar": True, "scrollZoom": True}), {'display': 'block'}
-
-            except Exception as e:
-                return f"Error: {str(e)}", {'display': 'none'}
 
         # Callback for extracting image and showing in separate container
         @self.app.callback(
@@ -929,56 +912,7 @@ class DataManager:
         print("2D heatmap created successfully!")
         return fig
 
-    def _create_world_map_demo(self, variable_name):
-        """Create a simple demo world map without data overlay"""
-        print("Creating simple world map demo...")
 
-        # Create a basic world map without data first
-        fig = go.Figure()
-
-        # Add a simple trace to initialize the map
-        fig.add_trace(go.Scattergeo(
-            lon=[0],  # Just one point at prime meridian
-            lat=[0],  # Equator
-            mode='markers',
-            marker=dict(size=1, color='red'),
-            showlegend=False
-        ))
-
-        # Update layout with proper geographic settings
-        fig.update_layout(
-            title=dict(
-                text=f"🌍 World Map Demo - {variable_name}",
-                font=dict(size=20, color='#2c3e50'),
-                x=0.5,
-                y=0.95
-            ),
-            height=700,
-            width=None,
-            # Simple geographic layout
-            geo=dict(
-                scope='world',
-                showland=True,
-                showocean=True,
-                showcoastlines=True,
-                coastlinecolor='rgb(128,128,128)',
-                coastlinewidth=1,
-                landcolor='rgb(243,243,243)',
-                oceancolor='rgb(230,230,250)',
-                showcountries=True,
-                countrycolor='rgb(128,128,128)',
-                countrywidth=0.5,
-                showframe=False,
-                projection_type='natural earth',
-                projection=dict(scale=1.2),
-                center=dict(lon=0, lat=30)
-            ),
-            margin=dict(l=0, r=0, t=80, b=0),
-            showlegend=False
-        )
-
-        print("World map created successfully!")
-        return fig
 
     def create_raster_image(self, data_array, variable_name, lat_dim, lon_dim):
         """Create a raster image from the data array and save it"""

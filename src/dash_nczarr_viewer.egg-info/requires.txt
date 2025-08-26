@@ -9,6 +9,8 @@ aiohttp
 fsspec
 cartopy
 netCDF4
+cfgrib
+h5netcdf
 leafmap
 folium
 copernicusmarine
