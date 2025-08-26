@@ -263,9 +263,8 @@ class ZarrDataViewerApp:
                     ], className='mb-3'),
                 ], width=12),
             ]),
-            # Fifth row: Plot Selected Data and Raster Sidebar
+            # Fifth row: Plot Selected Data (full width)
             dbc.Row([
-                # Main plot area
                 dbc.Col([
                     dbc.Card([
                         dbc.CardHeader("Plot Selected Data"),
@@ -280,21 +279,21 @@ class ZarrDataViewerApp:
                                        color='success', n_clicks=0, className='mt-2'),
                         ])
                     ]),
-                    dbc.Button('Reset', id='reset-button',
-                               color='secondary', n_clicks=0, className='mt-3'),
-                ], width=9),
-                # Raster images sidebar
+                ], width=12),
+            ]),
+            # Sixth row: Raster Image Display (full width)
+            dbc.Row([
                 dbc.Col([
                     dbc.Card([
-                        dbc.CardHeader("Generated Raster Images"),
+                        dbc.CardHeader("Generated Raster Image"),
                         dbc.CardBody([
                             html.Div(id='raster-container', children=[
-                                html.P("Click 'Extract Image' to generate raster images",
+                                html.P("Click 'Extract Image' to generate a detailed raster image",
                                        className="text-muted text-center")
                             ])
                         ])
-                    ])
-                ], width=3),
+                    ]),
+                ], width=12),
             ]),
             # Metadata row: full width at the bottom
             dbc.Row([
@@ -353,10 +352,6 @@ class ZarrDataViewerApp:
         # Use the new unified DataManager for all data operations
         self.data_manager = DataManager(self.app, lambda: self.ds)
         self.data_manager.setup_callbacks()
-
-        self.reset_functionality = ResetFunctionality(
-            self.app, lambda: self.ds)
-        self.reset_functionality.setup_callbacks()
 
         self.setup_callbacks()
         self.update_variable_dropdown()

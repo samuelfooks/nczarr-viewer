@@ -207,7 +207,7 @@ class DimensionSelection:
                 className="mb-2"
             ),
             html.Div([
-                html.Small(f"Range: {sorted_dim_values[range_25]:.4g} to {sorted_dim_values[range_75]:.4g}",
+                html.Small(f"Range: {self._format_dim_value(sorted_dim_values[range_25])} to {self._format_dim_value(sorted_dim_values[range_75])}",
                            className="text-muted")
             ], id={'type': 'slider-output', 'index': dim})
         ])
@@ -270,7 +270,7 @@ class DimensionSelection:
                     lon, _ = transformer.transform(val, 0)
                     marks[i] = f"{lon:.2f}°"
                 except Exception:
-                    marks[i] = f"{val:.4g}"
+                    marks[i] = self._format_dim_value(val)
             elif dim_lower in ['y', 'lat'] and crs is not None:
                 try:
                     # Convert to degrees for display
@@ -279,11 +279,11 @@ class DimensionSelection:
                     _, lat = transformer.transform(0, val)
                     marks[i] = f"{lat:.2f}°"
                 except Exception:
-                    marks[i] = f"{val:.4g}"
+                    marks[i] = self._format_dim_value(val)
             elif isinstance(val, (np.datetime64, np.timedelta64)):
                 marks[i] = str(val)[:10]  # Truncate long datetime strings
             else:
-                marks[i] = f"{val:.4g}"
+                marks[i] = self._format_dim_value(val)
 
         return marks
 
@@ -297,3 +297,12 @@ class DimensionSelection:
         except Exception:
             pass
         return None
+
+    def _format_dim_value(self, val):
+        """Format dimension values for display with proper type handling"""
+        if isinstance(val, (np.datetime64, np.timedelta64)):
+            return str(val)[:10]  # Truncate long datetime strings
+        elif isinstance(val, (int, float)):
+            return f"{val:.4g}"
+        else:
+            return str(val)

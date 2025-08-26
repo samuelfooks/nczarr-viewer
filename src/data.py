@@ -373,7 +373,7 @@ class DataManager:
         # Callback for extracting image and showing in separate container
         @self.app.callback(
             Output('raster-container', 'children'),
-            Input('extract-image-button', 'n_clicks'),
+            Input('extract-plot-button', 'n_clicks'),
             State('variable-dropdown', 'value'),
             State('selected-dimensions-store', 'data'),
             State('data-filter-min', 'value'),
@@ -382,13 +382,19 @@ class DataManager:
         )
         def extract_image(n_clicks, selected_var, selected_dims, filter_min, filter_max):
             """Generate raster image and display in sidebar"""
-            print(
-                f"Extract image called with n_clicks={n_clicks}, var={selected_var}")
+            print(f"=== EXTRACT IMAGE CALLBACK TRIGGERED ===")
+            print(f"n_clicks: {n_clicks}")
+            print(f"selected_var: {selected_var}")
+            print(f"selected_dims: {selected_dims}")
+            print(f"filter_min: {filter_min}")
+            print(f"filter_max: {filter_max}")
 
             if n_clicks is None or n_clicks == 0:
+                print("No clicks detected, returning empty")
                 return []
 
             if not selected_var or not selected_dims:
+                print("Missing variable or dimensions, returning message")
                 return [html.P("Please select a variable and dimensions first", className="text-muted text-center")]
 
             try:
@@ -427,20 +433,36 @@ class DataManager:
                 self.current_lon_dim = lon_dim
                 self.current_raster_image = image_path  # This is now base64 data
 
-                print("Creating sidebar content...")
-                # Create container with base64 image
+                print("Creating full-width raster display...")
+                # Create container with base64 image for full-width display
                 container_content = [
-                    html.H6(f"📊 {selected_var}", className="text-center mb-2"),
-                    html.Img(
-                        src=image_path,  # This is now base64 data
-                        style={'width': '100%', 'height': 'auto'},
-                        className="raster-thumbnail"
-                    ),
-                    html.P("Raster image generated successfully!",
-                           className="text-success text-center mt-2", style={'fontSize': '12px'}),
-                    html.Br(),
-                    dbc.Button('Overlay on Map', id='overlay-button',
-                               color='success', size='sm', className='w-100')
+                    html.Div([
+                        html.H4(f"📊 {selected_var} - Detailed Raster Analysis", 
+                               className="text-center mb-3 text-primary"),
+                        html.Img(
+                            src=image_path,  # This is now base64 data
+                            style={
+                                'width': '100%', 
+                                'height': 'auto',
+                                'maxWidth': '1200px',
+                                'display': 'block',
+                                'margin': '0 auto',
+                                'borderRadius': '8px',
+                                'boxShadow': '0 4px 8px rgba(0,0,0,0.1)'
+                            },
+                            className="raster-image"
+                        ),
+                        html.Div([
+                            html.P("✅ High-quality raster image generated successfully!", 
+                                   className="text-success text-center mt-3 mb-2", 
+                                   style={'fontSize': '14px', 'fontWeight': 'bold'}),
+                            dbc.Button('🗺️ Overlay on World Map', 
+                                       id='overlay-button',
+                                       color='primary', 
+                                       size='lg', 
+                                       className='mx-auto d-block')
+                        ], className="text-center")
+                    ])
                 ]
 
                 print("Returning container content successfully!")
@@ -462,11 +484,17 @@ class DataManager:
         )
         def overlay_on_map(n_clicks):
             """Overlay the generated raster image on the world map"""
+            print(f"=== OVERLAY CALLBACK TRIGGERED ===")
+            print(f"n_clicks: {n_clicks}")
+            
             if n_clicks is None or n_clicks == 0:
+                print("No clicks detected")
                 return "Click 'Overlay on Map' to see the result", {'display': 'none'}
 
             try:
+                print("Checking for stored raster data...")
                 if not hasattr(self, 'current_raster_var'):
+                    print("No current_raster_var found")
                     return "Error: No raster image generated yet", {'display': 'none'}
 
                 # Get the stored data
@@ -474,23 +502,36 @@ class DataManager:
                 subsetted_data = self.current_raster_data
                 lat_dim = self.current_lat_dim
                 lon_dim = self.current_lon_dim
+                
+                print(f"Stored data - var: {selected_var}, lat_dim: {lat_dim}, lon_dim: {lon_dim}")
+                print(f"Subsetted data shape: {dict(subsetted_data.sizes)}")
 
                 # Get the stored base64 image data
                 if not hasattr(self, 'current_raster_image'):
+                    print("No current_raster_image found")
                     return "Error: No raster image data found", {'display': 'none'}
 
                 image_src = self.current_raster_image
+                print(f"Image source type: {type(image_src)}")
+                print(f"Image source length: {len(image_src) if isinstance(image_src, str) else 'N/A'}")
 
+                print("Creating world map with overlay...")
                 # Create world map with overlay
                 overlay_figure = self._create_world_map_with_overlay(
-                    selected_var, image_path, subsetted_data, lat_dim, lon_dim)
+                    selected_var, subsetted_data, lat_dim, lon_dim)
 
                 if overlay_figure is None:
+                    print("Overlay figure creation failed")
                     return "Error: Could not create overlay", {'display': 'none'}
 
+                print("Overlay figure created successfully, returning...")
                 return dcc.Graph(figure=overlay_figure, config={"displayModeBar": True, "scrollZoom": True}), {'display': 'block'}
 
             except Exception as e:
+                print(f"Error in overlay_on_map: {str(e)}")
+                print(f"Exception type: {type(e)}")
+                import traceback
+                traceback.print_exc()
                 return f"Error: {str(e)}", {'display': 'none'}
 
     def _get_subsetted_data(self, selected_var, selected_dims):
@@ -899,8 +940,8 @@ class DataManager:
             else:
                 values = values.reshape(lats.size, lons.size)
 
-        # For large datasets, downsample for performance
-        max_resolution = 200
+        # For large datasets, downsample for performance but keep higher resolution
+        max_resolution = 800  # Increased from 200 for better quality
         if lats.size > max_resolution or lons.size > max_resolution:
             lat_factor = max(1, lats.size // max_resolution)
             lon_factor = max(1, lons.size // max_resolution)
@@ -916,33 +957,45 @@ class DataManager:
             lats_downsampled = lats
             lons_downsampled = lons
 
-        # Create the plot
-        plt.figure(figsize=(10, 8))
+        # Create the plot with larger size and better quality
+        plt.figure(figsize=(16, 12))  # Increased from (10, 8)
         plt.imshow(values_downsampled,
                    extent=[lons_downsampled.min(), lons_downsampled.max(),
                            lats_downsampled.min(), lats_downsampled.max()],
                    aspect='auto', cmap='viridis', origin='lower')
-        plt.colorbar(label=variable_name)
-        plt.title(f"{variable_name} Raster")
-        plt.xlabel('Longitude')
-        plt.ylabel('Latitude')
+        plt.colorbar(label=variable_name, shrink=0.8)
+        plt.title(f"{variable_name} Raster", fontsize=16, fontweight='bold')
+        plt.xlabel('Longitude', fontsize=14)
+        plt.ylabel('Latitude', fontsize=14)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
 
         # Create a temporary directory for images (not in assets)
         import tempfile
         temp_dir = os.path.join(os.path.dirname(__file__), 'temp_images')
         os.makedirs(temp_dir, exist_ok=True)
 
-        # Save the image to temp directory
+        # Save the image to temp directory with higher DPI
         image_path = os.path.join(temp_dir, f'raster_{variable_name}.png')
-        plt.savefig(image_path, dpi=150, bbox_inches='tight', pad_inches=0.1)
+        plt.savefig(image_path, dpi=300, bbox_inches='tight', pad_inches=0.1)
         plt.close()
 
+        # Convert to base64 for display in the web app
+        import base64
+        with open(image_path, "rb") as image_file:
+            image_data = base64.b64encode(image_file.read()).decode()
+        
+        image_src = f"data:image/png;base64,{image_data}"
+        
         print("Raster image converted to base64 successfully")
         return image_src
 
-    def _create_world_map_with_overlay(self, variable_name, image_src, data_array, lat_dim, lon_dim):
+    def _create_world_map_with_overlay(self, variable_name, data_array, lat_dim, lon_dim):
         """Create a world map with raster image overlay"""
         print("Creating world map with raster overlay...")
+        print(f"Variable: {variable_name}")
+        print(f"Lat dim: {lat_dim}, Lon dim: {lon_dim}")
+        print(f"Data array shape: {dict(data_array.sizes)}")
 
         lats = data_array.coords[lat_dim].values
         lons = data_array.coords[lon_dim].values
@@ -950,68 +1003,175 @@ class DataManager:
         # Get the geographic bounds
         lat_min, lat_max = lats.min(), lats.max()
         lon_min, lon_max = lons.min(), lons.max()
+        
+        print(f"Geographic bounds: lat [{lat_min:.4f}, {lat_max:.4f}], lon [{lon_min:.4f}, {lon_max:.4f}]")
 
-        # Create the world map
+        # Create a 3D globe with proper data overlay
         fig = go.Figure()
 
-        # Add the raster image as an image overlay
-        fig.add_trace(go.Scattergeo(
-            lon=[lon_min, lon_max],
-            lat=[lat_min, lat_max],
+        # Sample the data for better performance while maintaining quality
+        # Use the same step size for both dimensions to ensure matching shapes
+        max_dim_size = max(lats.size, lons.size)
+        sample_step = max(1, max_dim_size // 100)
+        print(f"Sampling data with step {sample_step} for 3D globe visualization")
+        
+        lats_sampled = lats[::sample_step]
+        lons_sampled = lons[::sample_step]
+        values_sampled = data_array.values[::sample_step, ::sample_step]
+        
+        print(f"Sampled shapes - lats: {lats_sampled.shape}, lons: {lons_sampled.shape}, values: {values_sampled.shape}")
+        
+        # Create a 3D scatter plot that will appear on the globe surface
+        # Convert lat/lon to 3D coordinates on a unit sphere
+        lats_rad = np.radians(lats_sampled)
+        lons_rad = np.radians(lons_sampled)
+        
+        # Create meshgrid to ensure proper broadcasting
+        lats_mesh, lons_mesh = np.meshgrid(lats_rad, lons_rad, indexing='ij')
+        
+        # 3D coordinates on unit sphere (radius = 1)
+        radius = 1.0
+        x = radius * np.cos(lats_mesh) * np.cos(lons_mesh)
+        y = radius * np.cos(lats_mesh) * np.sin(lons_mesh)
+        z = radius * np.sin(lats_mesh)
+        
+        # Flatten arrays for scatter plot
+        x_flat = x.flatten()
+        y_flat = y.flatten()
+        z_flat = z.flatten()
+        values_flat = values_sampled.flatten()
+        
+        # Filter out NaN values
+        valid_mask = ~np.isnan(values_flat)
+        x_valid = x_flat[valid_mask]
+        y_valid = y_flat[valid_mask]
+        z_valid = z_flat[valid_mask]
+        values_valid = values_flat[valid_mask]
+        
+        print(f"Valid 3D data points: {len(values_valid)}")
+        
+        # First, add the Earth globe surface
+        print("Adding Earth globe surface...")
+        
+        # Create a basic Earth sphere with landmasses
+        # Generate a sphere with more points for better appearance
+        phi = np.linspace(0, 2*np.pi, 100)
+        theta = np.linspace(-np.pi/2, np.pi/2, 50)
+        phi_mesh, theta_mesh = np.meshgrid(phi, theta)
+        
+        # Convert to Cartesian coordinates
+        earth_radius = 0.98  # Slightly smaller than data points
+        x_earth = earth_radius * np.cos(theta_mesh) * np.cos(phi_mesh)
+        y_earth = earth_radius * np.cos(theta_mesh) * np.sin(phi_mesh)
+        z_earth = earth_radius * np.sin(theta_mesh)
+        
+        # Add the Earth surface
+        fig.add_trace(go.Surface(
+            x=x_earth,
+            y=y_earth,
+            z=z_earth,
+            colorscale='Earth',
+            opacity=0.8,
+            showscale=False,
+            name='Earth Surface'
+        ))
+        
+        # Create the 3D scatter plot on the globe
+        fig.add_trace(go.Scatter3d(
+            x=x_valid,
+            y=y_valid,
+            z=z_valid,
             mode='markers',
-            marker=dict(size=1, color='red'),
-            showlegend=False
+            marker=dict(
+                size=2.0,  # Slightly larger for better visibility
+                color=values_valid,
+                colorscale='viridis',
+                opacity=0.9,
+                showscale=True,
+                colorbar=dict(
+                    title=variable_name,
+                    title_side="right",
+                    thickness=15,
+                    len=0.6
+                )
+            ),
+            text=[f"{variable_name}: {val:.3f}" for val in values_valid],
+            hoverinfo='text',
+            name=variable_name
         ))
 
-        # Add the image overlay using the base64 data
-        fig.add_layout_image(
-            dict(
-                source=image_src,  # This is now base64 data
-                xref="x",
-                yref="y",
-                x=lon_min,
-                y=lat_max,
-                sizex=lon_max - lon_min,
-                sizey=lat_max - lat_min,
-                sizing="stretch",
-                layer="below"
-            )
-        )
-
-        # Update layout with proper geographic settings
+        # Update layout for 3D globe
         fig.update_layout(
             title=dict(
-                text=f"🌍 {variable_name} Global Distribution",
+                text=f"🌍 {variable_name} - 3D Globe Overlay",
                 font=dict(size=20, color='#2c3e50'),
                 x=0.5,
                 y=0.95
             ),
-            height=700,
+            height=800,
             width=None,
-            geo=dict(
-                scope='world',
-                showland=True,
-                showocean=True,
-                showcoastlines=True,
-                coastlinecolor='rgb(128,128,128)',
-                coastlinewidth=1,
-                landcolor='rgb(243,243,243)',
-                oceancolor='rgb(230,230,250)',
-                showcountries=True,
-                countrywidth=0.5,
-                showframe=False,
-                projection_type='natural earth',
-                projection=dict(scale=1.2),
-                center=dict(lon=(lon_min + lon_max) / 2,
-                            lat=(lat_min + lat_max) / 2),
-                lonaxis=dict(range=[lon_min - 5, lon_max + 5]),
-                lataxis=dict(range=[lat_min - 5, lat_max + 5])
+            scene=dict(
+                xaxis=dict(
+                    title="",
+                    showgrid=False,
+                    showticklabels=False,
+                    range=[-1.2, 1.2]
+                ),
+                yaxis=dict(
+                    title="",
+                    showgrid=False,
+                    showticklabels=False,
+                    range=[-1.2, 1.2]
+                ),
+                zaxis=dict(
+                    title="",
+                    showgrid=False,
+                    showticklabels=False,
+                    range=[-1.2, 1.2]
+                ),
+                aspectmode='data',
+                camera=dict(
+                    eye=dict(x=1.5, y=1.5, z=1.5)
+                ),
+                # Add annotations for better orientation
+                annotations=[
+                    dict(
+                        x=0,
+                        y=0,
+                        z=1.1,
+                        text="North Pole",
+                        showarrow=False,
+                        font=dict(size=12, color="black")
+                    ),
+                    dict(
+                        x=0,
+                        y=0,
+                        z=-1.1,
+                        text="South Pole",
+                        showarrow=False,
+                        font=dict(size=12, color="black")
+                    )
+                ]
             ),
             margin=dict(l=0, r=0, t=80, b=0),
             showlegend=False
         )
+        
+        # Add a note about progressive rendering
+        fig.add_annotation(
+            text="💡 Tip: Zoom in to see more detail. The globe shows sampled data for performance.",
+            xref="paper", yref="paper",
+            x=0, y=0,
+            xanchor='left', yanchor='bottom',
+            showarrow=False,
+            font=dict(size=10, color="gray"),
+            bgcolor="rgba(255,255,255,0.8)",
+            bordercolor="gray",
+            borderwidth=1
+        )
 
-        print("World map with raster overlay created successfully!")
+        print("3D globe with raster overlay created successfully!")
+        print("Note: Future enhancement - progressive rendering will show more detail on zoom")
         return fig
 
     def _create_fallback_plot(self, values, variable_name):
