@@ -37,6 +37,11 @@ dependencies = [
     "dash-leaflet>=1.0.15",
     "matplotlib>=3.10.1",
     "pillow>=11.2.1",
+    "pydeck>=0.8.0",
+    "geopandas>=0.14.0",
+    "shapely>=2.0.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.urls]

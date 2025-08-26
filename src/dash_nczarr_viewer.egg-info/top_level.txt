@@ -2,6 +2,6 @@ __init__
 assets
 data
 dimension
-layout_manager
+temp_images
 variables
 zarr_data_viewer

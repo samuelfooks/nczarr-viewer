@@ -288,7 +288,7 @@ class ZarrDataViewerApp:
                         dbc.CardHeader("Generated Raster Image"),
                         dbc.CardBody([
                             html.Div(id='raster-container', children=[
-                                html.P("Click 'Extract Image' to generate a detailed raster image",
+                                html.P("Click 'Extract Image' to generate a raster image",
                                        className="text-muted text-center")
                             ])
                         ])
