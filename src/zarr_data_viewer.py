@@ -2,6 +2,9 @@ import dash
 from dash import Dash, html, dcc, Input, Output, State, callback_context
 import dash_bootstrap_components as dbc
 
+# Setup module for initialization tasks
+from setup import setup_cartopy_data
+
 from variables import VariableSelection
 from dimension import DimensionSelection
 from data import DataManager, DatasetLoader
@@ -19,7 +22,7 @@ class ZarrDataViewerApp:
         self.dataset_engine = None
         self.dataseturl = None
         self.dataset_loader = DatasetLoader()
-
+        setup_cartopy_data()
         self.app.layout = dbc.Container([
             dbc.Row([
                 dbc.Col(html.H1("Zarr/NetCDF Data Viewer",
