@@ -5,21 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NCZarr Viewer - Documentation</title>
     <script>
-        // Redirect logic for GitHub Pages
+        // Redirect logic for GitHub Pages - fixed to prevent infinite loops
         function redirectToDocs() {
             const currentPath = window.location.pathname;
             
-            // If we're on GitHub Pages, redirect to the built Sphinx docs
+            // If we're on GitHub Pages
             if (currentPath.includes('/nczarr-viewer/')) {
-                // Check if we're already in the right place
+                // If we're already in the build/html directory, stay here
                 if (currentPath.includes('/build/html/')) {
                     return; // Already in the right place
                 }
                 
                 // If we're at the docs root, redirect to built docs
                 if (currentPath.endsWith('/docs/') || currentPath.endsWith('/docs')) {
-                    window.location.href = './build/html/index.html';
-                    return;
+                    // Check if we're not already in a build subdirectory
+                    if (!currentPath.includes('/_build/') && !currentPath.includes('/build/')) {
+                        window.location.href = './build/html/index.html';
+                        return;
+                    }
                 }
                 
                 // If we're at the repository root, redirect to docs
@@ -29,15 +32,18 @@
                 }
             } else {
                 // Local development - redirect to built docs
-                window.location.href = './build/html/index.html';
+                if (!currentPath.includes('/build/')) {
+                    window.location.href = './build/html/index.html';
+                }
             }
         }
         
-        // Auto-redirect after a short delay
-        setTimeout(redirectToDocs, 1000);
-        
-        // Also redirect immediately if we're in the wrong place
-        redirectToDocs();
+        // Only redirect if we're not already in the right place
+        const currentPath = window.location.pathname;
+        if (!currentPath.includes('/build/html/')) {
+            // Auto-redirect after a short delay
+            setTimeout(redirectToDocs, 1000);
+        }
     </script>
     <style>
         body {

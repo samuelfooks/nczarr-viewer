@@ -25,6 +25,9 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = []
 
+# Build directory configuration
+build_dir = 'build'
+
 # -- Options for HTML output -------------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
