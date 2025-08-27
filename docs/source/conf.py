@@ -35,6 +35,7 @@ html_js_files = ['custom.js']
 # GitHub Pages specific settings
 html_use_relative_urls = False
 html_baseurl = 'https://samuelfooks.github.io/nczarr-viewer/'
+html_show_sourcelink = False
 
 # Theme options
 html_theme_options = {

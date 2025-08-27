@@ -1,7 +1,7 @@
 # Makefile for generating presentations from Marp markdown files
 
 # Default target
-all: pdf html sphinx sphinx-deploy
+all: pdf html sphinx
 
 # Generate PDF from Marp markdown
 pdf: dash_nczarr_viewer_presentation.pdf
@@ -15,13 +15,7 @@ sphinx: sphinx-html
 # Sphinx HTML generation
 sphinx-html:
 	@echo "Building Sphinx HTML documentation..."
-	../.venv/bin/sphinx-build -b html -D html_baseurl=https://samuelfooks.github.io/nczarr-viewer/build/html/ source build/html
-
-# Copy Sphinx index to root for GitHub Pages
-sphinx-deploy: sphinx-html
-	@echo "Copying Sphinx index to docs root for GitHub Pages..."
-	cp build/html/index.html ./sphinx-index.html
-	@echo "GitHub Pages index.html is ready"
+	../.venv/bin/sphinx-build -b html source _build/html
 
 # PDF generation
 dash_nczarr_viewer_presentation.pdf: dash_nczarr_viewer_presentation.md
@@ -42,6 +36,12 @@ clean:
 	@echo "Cleaning generated files..."
 	rm -f *.pdf *.html
 	rm -rf build/
+	rm -rf _static/
+	rm -rf _sources/
+	rm -f *.js
+	rm -f .buildinfo
+	rm -f objects.inv
+	rm -f searchindex.js
 
 # Install Marp CLI (if not already installed)
 install-marp:

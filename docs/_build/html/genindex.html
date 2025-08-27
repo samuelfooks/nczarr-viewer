@@ -3,16 +3,15 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dockerfile &mdash; dash_nczarr_viewer 0.1.0 documentation</title>
+  <title>Index &mdash; dash_nczarr_viewer 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-    <link rel="canonical" href="https://samuelfooks.github.io/nczarr-viewer/build/html/dockerfile.html" />
+    <link rel="canonical" href="https://samuelfooks.github.io/nczarr-viewer/genindex.html" />
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=01f34227"></script>
@@ -20,10 +19,8 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/custom.js"></script>
     <script src="_static/js/theme.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API Reference" href="api.html" />
-    <link rel="prev" title="Usage" href="usage.html" /> 
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,7 +43,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="usage.html#quick-start">Quick Start</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage.html#local-development">Local Development</a></li>
@@ -62,7 +59,7 @@
 <li class="toctree-l2"><a class="reference internal" href="usage.html#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Dockerfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dockerfile.html">Dockerfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#module-main">Core Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api.html#main.TimeoutException"><code class="docutils literal notranslate"><span class="pre">TimeoutException</span></code></a></li>
@@ -138,83 +135,209 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Dockerfile</li>
+      <li class="breadcrumb-item active">Index</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/dockerfile.rst.txt" rel="nofollow"> View page source</a>
       </li>
-  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
-        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-  </div>
+  </ul>
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="dockerfile">
-<h1>Dockerfile<a class="headerlink" href="#dockerfile" title="Link to this heading"></a></h1>
-<div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">Dockerfile</span><a class="headerlink" href="#id1" title="Link to this code"></a></div>
-<div class="highlight-docker notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim-bookworm</span>
 
-<span class="c"># Install system dependencies</span>
-<span class="k">RUN</span><span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>curl<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libproj-dev<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>proj-data<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>proj-bin<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libgeos-dev<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libgdal-dev<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libnetcdf-dev<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libhdf5-dev<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libeccodes-dev<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>gdal-bin<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/var/lib/apt/lists/*
+<h1 id="index">Index</h1>
 
-<span class="c"># Install uv</span>
-<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>uv
-
-<span class="c"># Enable bytecode compilation and set link mode to copy</span>
-<span class="k">ENV</span><span class="w"> </span><span class="nv">UV_COMPILE_BYTECODE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span><span class="nv">UV_LINK_MODE</span><span class="o">=</span>copy<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span><span class="nv">UV_PYTHON_DOWNLOADS</span><span class="o">=</span><span class="m">0</span>
-
-<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
-
-<span class="c"># Copy dependency files</span>
-<span class="k">COPY</span><span class="w"> </span>pyproject.toml<span class="w"> </span>uv.lock<span class="w"> </span>./
-
-<span class="c"># Install dependencies without the project code first</span>
-<span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/uv<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>uv<span class="w"> </span>sync<span class="w"> </span>--frozen<span class="w"> </span>--no-install-project<span class="w"> </span>--no-dev
-
-<span class="c"># Copy the rest of the application code</span>
-<span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
-
-<span class="c"># Install the application into the virtual environment</span>
-<span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/uv<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>uv<span class="w"> </span>sync<span class="w"> </span>--frozen<span class="w"> </span>--no-dev
-
-<span class="c"># Update PATH to use the virtual environment&#39;s binaries</span>
-<span class="k">ENV</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/app/.venv/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
-
-<span class="c"># Expose the application&#39;s port</span>
-<span class="k">EXPOSE</span><span class="w"> </span><span class="s">8050</span>
-
-<span class="c"># Run the application</span>
-<span class="k">ENTRYPOINT</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;python&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-u&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;src/main.py&quot;</span><span class="p">]</span>
-</pre></div>
+<div class="genindex-jumpbox">
+ <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ 
 </div>
-</div>
-</section>
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#data.DatasetLoader.clear_logs">clear_logs() (data.DatasetLoader method)</a>
+</li>
+      <li><a href="api.html#dimension.DimensionSelection.create_dropdown">create_dropdown() (dimension.DimensionSelection method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#dimension.DimensionSelection.create_range_slider">create_range_slider() (dimension.DimensionSelection method)</a>
+</li>
+      <li><a href="api.html#data.DataManager.create_raster_image">create_raster_image() (data.DataManager method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    data
+
+      <ul>
+        <li><a href="api.html#module-data">module</a>
+</li>
+      </ul></li>
+      <li><a href="api.html#data.DataManager">DataManager (class in data)</a>
+</li>
+      <li><a href="api.html#data.DataPlot">DataPlot (class in data)</a>
+</li>
+      <li><a href="api.html#data.DataQuickStats">DataQuickStats (class in data)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#data.DatasetLoader">DatasetLoader (class in data)</a>
+</li>
+      <li><a href="api.html#data.DataSubsetter">DataSubsetter (class in data)</a>
+</li>
+      <li>
+    dimension
+
+      <ul>
+        <li><a href="api.html#module-dimension">module</a>
+</li>
+      </ul></li>
+      <li><a href="api.html#dimension.DimensionSelection">DimensionSelection (class in dimension)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#dimension.DimensionSelection.generate_dimension_checklist">generate_dimension_checklist() (dimension.DimensionSelection method)</a>
+</li>
+      <li><a href="api.html#dimension.DimensionSelection.generate_dimension_controls">generate_dimension_controls() (dimension.DimensionSelection method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#data.DatasetLoader.get_logs">get_logs() (data.DatasetLoader method)</a>
+</li>
+      <li><a href="api.html#main.ViewerApp.get_metadata_summary">get_metadata_summary() (main.ViewerApp method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#data.DatasetLoader.load_dataset">load_dataset() (data.DatasetLoader method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    main
+
+      <ul>
+        <li><a href="api.html#module-main">module</a>
+</li>
+      </ul></li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="api.html#module-data">data</a>
+</li>
+        <li><a href="api.html#module-dimension">dimension</a>
+</li>
+        <li><a href="api.html#module-main">main</a>
+</li>
+        <li><a href="api.html#module-variables">variables</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#main.ViewerApp.run">run() (main.ViewerApp method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#data.DataManager.setup_callbacks">setup_callbacks() (data.DataManager method)</a>
+
+      <ul>
+        <li><a href="api.html#data.DataPlot.setup_callbacks">(data.DataPlot method)</a>
+</li>
+        <li><a href="api.html#data.DataQuickStats.setup_callbacks">(data.DataQuickStats method)</a>
+</li>
+        <li><a href="api.html#dimension.DimensionSelection.setup_callbacks">(dimension.DimensionSelection method)</a>
+</li>
+        <li><a href="api.html#main.ViewerApp.setup_callbacks">(main.ViewerApp method)</a>
+</li>
+        <li><a href="api.html#variables.VariableSelection.setup_callbacks">(variables.VariableSelection method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#main.ViewerApp.setup_help_modal_callback">setup_help_modal_callback() (main.ViewerApp method)</a>
+</li>
+      <li><a href="api.html#data.DatasetLoader.setup_logging">setup_logging() (data.DatasetLoader method)</a>
+</li>
+      <li><a href="api.html#main.ViewerApp.setup_variable_metadata_callback">setup_variable_metadata_callback() (main.ViewerApp method)</a>
+</li>
+      <li><a href="api.html#data.DataSubsetter.subset_data">subset_data() (data.DataSubsetter method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#main.TimeoutException">TimeoutException</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#main.ViewerApp.update_variable_dropdown">update_variable_dropdown() (main.ViewerApp method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    variables
+
+      <ul>
+        <li><a href="api.html#module-variables">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#variables.VariableSelection">VariableSelection (class in variables)</a>
+</li>
+      <li><a href="api.html#main.ViewerApp">ViewerApp (class in main)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 
