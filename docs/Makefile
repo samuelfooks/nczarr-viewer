@@ -1,13 +1,27 @@
 # Makefile for generating presentations from Marp markdown files
 
 # Default target
-all: pdf html
+all: pdf html sphinx sphinx-deploy
 
 # Generate PDF from Marp markdown
 pdf: dash_nczarr_viewer_presentation.pdf
 
 # Generate HTML from Marp markdown
 html: dash_nczarr_viewer_presentation.html
+
+# Generate Sphinx HTML documentation
+sphinx: sphinx-html
+
+# Sphinx HTML generation
+sphinx-html:
+	@echo "Building Sphinx HTML documentation..."
+	../.venv/bin/sphinx-build -b html source build/html
+
+# Copy Sphinx index to root for GitHub Pages
+sphinx-deploy: sphinx-html
+	@echo "Copying Sphinx index to docs root for GitHub Pages..."
+	cp build/html/index.html ./sphinx-index.html
+	@echo "GitHub Pages index.html is ready"
 
 # PDF generation
 dash_nczarr_viewer_presentation.pdf: dash_nczarr_viewer_presentation.md
@@ -27,6 +41,7 @@ presentations: pdf html
 clean:
 	@echo "Cleaning generated files..."
 	rm -f *.pdf *.html
+	rm -rf build/
 
 # Install Marp CLI (if not already installed)
 install-marp:
@@ -40,10 +55,12 @@ check-marp:
 # Help target
 help:
 	@echo "Available targets:"
-	@echo "  all              - Generate both PDF and HTML (default)"
+	@echo "  all              - Generate both PDF and HTML presentations and Sphinx docs (default)"
 	@echo "  pdf              - Generate PDF presentation"
 	@echo "  html             - Generate HTML presentation"
-	@echo "  presentations    - Generate both formats"
+	@echo "  sphinx           - Generate Sphinx HTML documentation"
+	@echo "  sphinx-html      - Generate Sphinx HTML documentation"
+	@echo "  presentations    - Generate both PDF and HTML presentations"
 	@echo "  clean            - Remove generated files"
 	@echo "  install-marp     - Install Marp CLI"
 	@echo "  check-marp       - Check if Marp CLI is installed"
@@ -52,4 +69,4 @@ help:
 # Ensure Marp is installed before generating files
 pdf html: check-marp
 
-.PHONY: all pdf html presentations clean install-marp check-marp help
+.PHONY: all pdf html sphinx sphinx-html presentations clean install-marp check-marp help
