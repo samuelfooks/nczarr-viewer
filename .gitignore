@@ -1,5 +1,7 @@
 /myfiles
 /data
 *.nc
+__pycache__/
+*.png
 .venv/
 .vscode/

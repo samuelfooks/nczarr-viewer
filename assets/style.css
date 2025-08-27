@@ -23,15 +23,30 @@ body {
     padding: 10px;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Allow shrinking */
 }
 
 .left-container {
     margin-right: 20px;
+    max-width: 400px; /* Limit width for neater layout */
 }
-#variable-dropdown, #dimension-checklist-container, #dimension-dropdowns-container {
-    width: 100%;
-    flex-grow: 1;
-    min-width: 800px; /* Ensure a minimum width */
+
+/* Remove min-widths and make all controls fit container */
+#variable-dropdown, #dimension-checklist-container, #dimension-dropdowns-container, .dash-slider, .dash-range-slider, .dash-slider-container, .dash-range-slider-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+}
+
+.rc-slider, .rc-slider-range {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+/* Prevent slider handles from overflowing */
+.rc-slider-handle {
+    z-index: 2;
 }
 
 .map-container {
@@ -82,13 +97,19 @@ button:hover {
     height: 100%;
     display: block;
 }
-/* Container styling for dataset info */
+
+/* Make metadata full width and visually distinct at the bottom */
 .dataset-info-container {
-    margin: 20px;
-    padding: 10px;
+    width: 100% !important;
+    max-width: 100vw;
+    margin: 24px auto 0 auto;
+    padding: 16px 24px;
     border-radius: 8px;
-    background-color: #f8f9fa; /* Light gray background for contrast */
-    border: 1px solid #dee2e6; /* Border color to define the edges */
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #222;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 /* Styling for the dataset info table */

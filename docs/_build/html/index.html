@@ -1,0 +1,178 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to Zarr NetCDF Viewer’s documentation! &mdash; dash_nczarr_viewer 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            dash_nczarr_viewer
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dockerfile.html">Dockerfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">dash_nczarr_viewer</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to Zarr NetCDF Viewer’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-zarr-netcdf-viewer-s-documentation">
+<h1>Welcome to Zarr NetCDF Viewer’s documentation!<a class="headerlink" href="#welcome-to-zarr-netcdf-viewer-s-documentation" title="Link to this heading"></a></h1>
+<p>The NCZarr Viewer is a powerful web application for exploring and visualizing geospatial NetCDF and Zarr datasets. Built with Dash and optimized for both local development and cloud deployment.</p>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Multi-Format Support</strong>: NetCDF, Zarr files</p></li>
+<li><p><strong>Cloud Storage Access</strong>: Direct S3, Minio, and cloud storage access</p></li>
+<li><p><strong>Marine Data Integration</strong>: Copernicus Marine Service (CMEMS) support</p></li>
+<li><p><strong>Interactive Visualization</strong>: Dynamic plotting with Plotly and Matplotlib</p></li>
+<li><p><strong>Smart Data Exploration</strong>: Variable browsing, dimension filtering, and statistics</p></li>
+<li><p><strong>Responsive Design</strong>: Works on desktop, tablet, and mobile devices</p></li>
+<li><p><strong>Docker Ready</strong>: Containerized for easy deployment</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone and setup</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/samuelfooks/nczarr-viewer.git
+<span class="nb">cd</span><span class="w"> </span>nczarr-viewer
+
+<span class="c1"># Install dependencies with uv</span>
+uv<span class="w"> </span>sync
+
+<span class="c1"># Run the viewer</span>
+python<span class="w"> </span>run.py
+</pre></div>
+</div>
+<p>The viewer will be available at <a class="reference external" href="http://localhost:8050">http://localhost:8050</a></p>
+</section>
+</section>
+<section id="documentation-contents">
+<h1>Documentation Contents<a class="headerlink" href="#documentation-contents" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#local-development">Local Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#docker-deployment">Docker Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#s3-cloud-storage-access">S3/Cloud Storage Access</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#cmems-integration">CMEMS Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dockerfile.html">Dockerfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-main">Core Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-data">Data Loading and Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#variable-and-dimension-handling">Variable and Dimension Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#main-application-class">Main Application Class</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="additional-resources">
+<h1>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><strong>GitHub Repository</strong>: <a class="reference external" href="https://github.com/samuelfooks/zarr-netcdf-viewer">https://github.com/samuelfooks/zarr-netcdf-viewer</a></p></li>
+<li><p><strong>Docker Hub</strong>: samfooks/zarr-netcdf-viewer</p></li>
+</ul>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

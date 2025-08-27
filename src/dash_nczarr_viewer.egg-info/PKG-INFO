@@ -1,3 +1,46 @@
+Metadata-Version: 2.4
+Name: dash_nczarr_viewer
+Version: 0.1.0
+Summary: A Simple Geo NetCDF and Zarr Dataset Viewing App
+Author-email: Samuel Fooks <samuel.fooks@gmail.com>
+License: MIT
+Project-URL: Homepage, https://github.com/samuelfooks/dash_nczarr_viewer
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: dash
+Requires-Dist: dash-bootstrap-components
+Requires-Dist: dash-core-components
+Requires-Dist: dash-html-components
+Requires-Dist: xarray
+Requires-Dist: plotly
+Requires-Dist: zarr
+Requires-Dist: aiohttp
+Requires-Dist: fsspec
+Requires-Dist: cartopy
+Requires-Dist: netCDF4
+Requires-Dist: cfgrib
+Requires-Dist: h5netcdf
+Requires-Dist: leafmap
+Requires-Dist: folium
+Requires-Dist: copernicusmarine
+Requires-Dist: pyproj>=3.7.1
+Requires-Dist: pip>=25.2
+Requires-Dist: dash-leaflet>=1.0.15
+Requires-Dist: matplotlib>=3.10.1
+Requires-Dist: pillow>=11.2.1
+Requires-Dist: pydeck>=0.8.0
+Requires-Dist: geopandas>=0.14.0
+Requires-Dist: shapely>=2.0.0
+Requires-Dist: requests>=2.31.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: sphinx>=8.1.3
+Requires-Dist: sphinx-rtd-theme>=3.0.2
+Dynamic: license-file
+
 # Dash NCZarr Viewer
 
 ### A Modern, Interactive NetCDF and Zarr Dataset Viewer

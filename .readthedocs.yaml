@@ -1,0 +1,26 @@
+# .readthedocs.yml
+
+version: 2
+
+# Build configuration
+build:
+  os: ubuntu-22.04  # Set the OS for the build environment, e.g., Ubuntu 22.04
+  tools:
+    python: "3.10"   # Specify the Python version
+
+# Sphinx documentation configuration
+sphinx:
+  configuration: docs/source/conf.py
+
+# Optionally build your docs in additional formats such as PDF and ePub
+formats:
+  - pdf
+  - epub
+
+# Specify the Python version and the dependencies
+# Specify the Python version and the dependencies
+python:
+  install:
+    - requirements: docs/requirements.txt
+    - method: pip
+      path: .
