@@ -29,7 +29,7 @@ Quick Start
 .. code-block:: bash
 
    # Clone and setup
-   git clone |repo_url|.git
+   git clone git@github.com:EDITO-Infra/nczarr-viewer.git
    cd nczarr-viewer
    
    # Install dependencies with uv
@@ -55,9 +55,9 @@ Documentation Contents
 Additional Resources
 ===================
 
-- **Source Code**: |repo_url|_
+- **Source Code**: https://github.com/EDITO-Infra/nczarr-viewer
 - **Docker Hub**: samfooks/nczarr-viewer
-- **Presentation**: `NCZarr Viewer Presentation <../../nczarr_viewer_presentation.html>`_
+- **Presentation**: `NCZarr Viewer Presentation <nczarr_viewer_presentation.html>`_
 
 Indices and tables
 ==================

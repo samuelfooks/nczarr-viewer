@@ -11,7 +11,7 @@ The fastest way to get started is using the local development setup:
 .. code-block:: bash
 
    # Clone and setup
-   git clone https://github.com/samuelfooks/nczarr-viewer.git
+   git clone git@github.com:EDITO-Infra/nczarr-viewer.git
    cd nczarr-viewer
    
    # Install dependencies with uv

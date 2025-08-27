@@ -13,8 +13,11 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Build Sphinx HTML documentation
-html: $(BUILDDIR)/html/nczarr_viewer_presentation.html
+html:
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+# Build both docs and presentation
+all: $(BUILDDIR)/html/nczarr_viewer_presentation.html html
 
 # Build PDF presentation
 presentationpdf: nczarr_viewer_presentation.pdf
@@ -28,13 +31,14 @@ nczarr_viewer_presentation.pdf: nczarr_viewer_presentation.md
 
 # Rule to build HTML from markdown using Marp and place in build/html/
 $(BUILDDIR)/html/nczarr_viewer_presentation.html: nczarr_viewer_presentation.md
-	marp $< --html --output-dir $(BUILDDIR)/html/
+	mkdir -p $(BUILDDIR)/html/
+	marp $< --output $(BUILDDIR)/html/nczarr_viewer_presentation.html
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 # Exclude our custom presentation targets from this catch-all
 %: Makefile
-	@if [ "$@" != "nczarr_viewer_presentation.md" ] && [ "$@" != "presentationhtml" ] && [ "$@" != "presentationpdf" ]; then \
+	@if [ "$@" != "nczarr_viewer_presentation.md" ] && [ "$@" != "presentationhtml" ] && [ "$@" != "presentationpdf" ] && [ "$@" != "all" ]; then \
 		$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O); \
 	fi
 	mkdir -p $(BUILDDIR)/html/

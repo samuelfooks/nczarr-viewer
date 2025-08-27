@@ -36,11 +36,17 @@ jobs:
           # If autodoc imports your package, install it:
           if [ -f pyproject.toml ] || [ -f setup.py ]; then pip install -e .; fi
 
+      - name: install marp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y npm
+          npm install -g @marp-team/marp-cli@4.1.2
+
       - name: Build with Makefile (clean + html)
         working-directory: docs
         run: |
           make clean
-          make html
+          make all
           # Ensure Pages doesn't run Jekyll (safe even if githubpages ext already did this)
           touch build/html/.nojekyll
 
