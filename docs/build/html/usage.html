@@ -9,7 +9,7 @@
   <title>Usage &mdash; nczarr-viewer 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=f9185e5b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
     <link rel="canonical" href="/nczarr-viewer/usage.html" />
@@ -18,8 +18,8 @@
       <script src="_static/documentation_options.js?v=01f34227"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script src="_static/custom.js?v=eb49075c"></script>
-      <script src="_static/redirect.js?v=74cb3ab3"></script>
+      <script src="_static/custom.js"></script>
+      <script src="_static/redirect.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -188,7 +188,7 @@ python<span class="w"> </span>run.py
 <section id="quick-docker-run">
 <h3>Quick Docker Run<a class="headerlink" href="#quick-docker-run" title="Link to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pull and run the latest image</span>
-docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/zarr-netcdf-viewer:latest
+docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/nczarr-viewer:latest
 </pre></div>
 </div>
 </section>
@@ -197,7 +197,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </sp
 <ol class="arabic">
 <li><p>Place your NetCDF file (e.g., <cite>Water_body_chlorophyll-a.nc</cite>) in a folder named <cite>myfiles</cite>.</p></li>
 <li><p>Run the following Docker command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/myfiles:/app/myfiles<span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/zarr-netcdf-viewer:latest
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/myfiles:/app/myfiles<span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/nczarr-viewer:latest
 </pre></div>
 </div>
 </li>
@@ -208,7 +208,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </sp
 <section id="with-online-datasets">
 <h3>With Online Datasets<a class="headerlink" href="#with-online-datasets" title="Link to this heading"></a></h3>
 <p>Access Zarr datasets directly from cloud storage:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/zarr-netcdf-viewer:latest
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/nczarr-viewer:latest
 </pre></div>
 </div>
 <p>Once the container is running:
@@ -220,7 +220,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </sp
 <h2>S3/Cloud Storage Access<a class="headerlink" href="#s3-cloud-storage-access" title="Link to this heading"></a></h2>
 <p>For NetCDF files stored on S3-compatible storage (like Minio), add <cite>#mode=bytes</cite> to the end of your URL:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example for Minio/EDITO storage</span>
-docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/zarr-netcdf-viewer:latest
+docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/nczarr-viewer:latest
 </pre></div>
 </div>
 <p>Once the container is running:
@@ -239,7 +239,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </sp
 </div>
 </li>
 <li><p>Run the Docker container with credentials:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-e<span class="w"> </span><span class="nv">CMEMS_USERNAME</span><span class="o">=</span><span class="nv">$CMEMS_USERNAME</span><span class="w"> </span>-e<span class="w"> </span><span class="nv">CMEMS_PASSWORD</span><span class="o">=</span><span class="nv">$CMEMS_PASSWORD</span><span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/zarr-netcdf-viewer:latest
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-e<span class="w"> </span><span class="nv">CMEMS_USERNAME</span><span class="o">=</span><span class="nv">$CMEMS_USERNAME</span><span class="w"> </span>-e<span class="w"> </span><span class="nv">CMEMS_PASSWORD</span><span class="o">=</span><span class="nv">$CMEMS_PASSWORD</span><span class="w"> </span>-p<span class="w"> </span><span class="m">8050</span>:8050<span class="w"> </span>samfooks/nczarr-viewer:latest
 </pre></div>
 </div>
 </li>

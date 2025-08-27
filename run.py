@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Quick local runner for the Dash NCZarr Viewer
+Quick local runner for the NCZarr Viewer
 Run this script to start the viewer locally without Docker.
 """
 
@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 try:
     from main import ViewerApp
 
-    print("Starting Dash NCZarr Viewer...")
+    print("Starting NCZarr Viewer...")
     print("The viewer will be available at: http://localhost:8050")
     print("Press Ctrl+C to stop the server")
 

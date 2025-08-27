@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dash_nczarr_viewer"
+name = "nczarr-viewer"
 version = "0.1.0"
 description = "A Simple Geo NetCDF and Zarr Dataset Viewing App"
 readme = "README.md"
@@ -49,4 +49,4 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/samuelfooks/dash_nczarr_viewer"
+Homepage = "https://github.com/samuelfooks/nczarr-viewer"

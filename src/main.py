@@ -25,7 +25,7 @@ class ViewerApp:
         setup_cartopy_data()
         self.app.layout = dbc.Container([
             dbc.Row([
-                dbc.Col(html.H1("Zarr/NetCDF Data Viewer",
+                dbc.Col(html.H1("NCZarr Viewer",
                         className="text-center mb-4"), width=12)
             ]),
             # Top row: Load Dataset and Variable Selection side by side

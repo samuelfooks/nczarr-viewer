@@ -746,76 +746,6 @@ wheels = [
 ]
 
 [[package]]
-name = "dash-nczarr-viewer"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "aiohttp" },
-    { name = "cartopy" },
-    { name = "cfgrib" },
-    { name = "copernicusmarine" },
-    { name = "dash" },
-    { name = "dash-bootstrap-components" },
-    { name = "dash-core-components" },
-    { name = "dash-html-components" },
-    { name = "dash-leaflet", version = "1.0.15", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "dash-leaflet", version = "1.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "folium" },
-    { name = "fsspec" },
-    { name = "geopandas" },
-    { name = "h5netcdf" },
-    { name = "leafmap" },
-    { name = "matplotlib" },
-    { name = "netcdf4" },
-    { name = "pillow" },
-    { name = "pip" },
-    { name = "plotly" },
-    { name = "pydeck" },
-    { name = "pyproj" },
-    { name = "python-dotenv" },
-    { name = "requests" },
-    { name = "shapely" },
-    { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "sphinx", version = "8.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "sphinx-rtd-theme" },
-    { name = "xarray" },
-    { name = "zarr", version = "2.18.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "zarr", version = "2.18.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiohttp" },
-    { name = "cartopy" },
-    { name = "cfgrib" },
-    { name = "copernicusmarine" },
-    { name = "dash" },
-    { name = "dash-bootstrap-components" },
-    { name = "dash-core-components" },
-    { name = "dash-html-components" },
-    { name = "dash-leaflet", specifier = ">=1.0.15" },
-    { name = "folium" },
-    { name = "fsspec" },
-    { name = "geopandas", specifier = ">=0.14.0" },
-    { name = "h5netcdf" },
-    { name = "leafmap" },
-    { name = "matplotlib", specifier = ">=3.10.1" },
-    { name = "netcdf4" },
-    { name = "pillow", specifier = ">=11.2.1" },
-    { name = "pip", specifier = ">=25.2" },
-    { name = "plotly" },
-    { name = "pydeck", specifier = ">=0.8.0" },
-    { name = "pyproj", specifier = ">=3.7.1" },
-    { name = "python-dotenv", specifier = ">=1.0.0" },
-    { name = "requests", specifier = ">=2.31.0" },
-    { name = "shapely", specifier = ">=2.0.0" },
-    { name = "sphinx", specifier = ">=8.1.3" },
-    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
-    { name = "xarray" },
-    { name = "zarr" },
-]
-
-[[package]]
 name = "dash-svg"
 version = "0.0.12"
 source = { registry = "https://pypi.org/simple" }
@@ -2084,6 +2014,76 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/65/92/503f99e2244a271aacd6c2588e0af1b59232292b217708748cdb30214dc3/narwhals-1.36.0.tar.gz", hash = "sha256:7cd860e7e066609bd8a042bb5b8e4193275532114448210a91cbd5c622b6e5eb", size = 270385 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/42/bf/fbcbd9f8676e06ed43d644a4ddbf31478a44056487578ce67f191da430cb/narwhals-1.36.0-py3-none-any.whl", hash = "sha256:e3c50dd1d769bc145f57ae17c1f0f0da6c3d397d62cdd0bb167e9b618e95c9d6", size = 331018 },
+]
+
+[[package]]
+name = "nczarr-viewer"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "cartopy" },
+    { name = "cfgrib" },
+    { name = "copernicusmarine" },
+    { name = "dash" },
+    { name = "dash-bootstrap-components" },
+    { name = "dash-core-components" },
+    { name = "dash-html-components" },
+    { name = "dash-leaflet", version = "1.0.15", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "dash-leaflet", version = "1.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "folium" },
+    { name = "fsspec" },
+    { name = "geopandas" },
+    { name = "h5netcdf" },
+    { name = "leafmap" },
+    { name = "matplotlib" },
+    { name = "netcdf4" },
+    { name = "pillow" },
+    { name = "pip" },
+    { name = "plotly" },
+    { name = "pydeck" },
+    { name = "pyproj" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "shapely" },
+    { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "sphinx", version = "8.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "sphinx-rtd-theme" },
+    { name = "xarray" },
+    { name = "zarr", version = "2.18.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "zarr", version = "2.18.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp" },
+    { name = "cartopy" },
+    { name = "cfgrib" },
+    { name = "copernicusmarine" },
+    { name = "dash" },
+    { name = "dash-bootstrap-components" },
+    { name = "dash-core-components" },
+    { name = "dash-html-components" },
+    { name = "dash-leaflet", specifier = ">=1.0.15" },
+    { name = "folium" },
+    { name = "fsspec" },
+    { name = "geopandas", specifier = ">=0.14.0" },
+    { name = "h5netcdf" },
+    { name = "leafmap" },
+    { name = "matplotlib", specifier = ">=3.10.1" },
+    { name = "netcdf4" },
+    { name = "pillow", specifier = ">=11.2.1" },
+    { name = "pip", specifier = ">=25.2" },
+    { name = "plotly" },
+    { name = "pydeck", specifier = ">=0.8.0" },
+    { name = "pyproj", specifier = ">=3.7.1" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "requests", specifier = ">=2.31.0" },
+    { name = "shapely", specifier = ">=2.0.0" },
+    { name = "sphinx", specifier = ">=8.1.3" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
+    { name = "xarray" },
+    { name = "zarr" },
 ]
 
 [[package]]

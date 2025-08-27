@@ -20,25 +20,9 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
+    'sphinx.ext.githubpages',
 ]
 
-templates_path = ['_templates']
-exclude_patterns = []
-
-# Build directory configuration
-build_dir = 'build'
-
-# -- Options for HTML output -------------------------------------------------
-
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['static']
-html_css_files = ['custom.css']
-html_js_files = ['custom.js', 'redirect.js']
-
-# GitHub Pages specific settings - these ensure proper URL handling
-html_use_relative_urls = True
-html_baseurl = '/nczarr-viewer/'
-html_show_sourcelink = False
 
 # Theme options
 html_theme_options = {

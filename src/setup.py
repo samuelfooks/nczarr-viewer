@@ -1,5 +1,5 @@
 """
-Setup module for the Zarr Data Viewer app.
+Setup module for the NCZarr Viewer app.
 Handles initialization tasks like downloading Cartopy map data.
 """
 
@@ -75,7 +75,7 @@ def setup_cartopy_data():
 
 def run_setup():
     """Run all setup tasks."""
-    print("🚀 Starting Zarr Data Viewer setup...")
+    print("🚀 Starting NCZarr Viewer setup...")
     setup_cartopy_data()
     print("🎉 Setup completed!")
 

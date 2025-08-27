@@ -1,0 +1,14 @@
+LICENSE
+README.md
+pyproject.toml
+src/__init__.py
+src/data.py
+src/dimension.py
+src/main.py
+src/setup.py
+src/variables.py
+src/nczarr_viewer.egg-info/PKG-INFO
+src/nczarr_viewer.egg-info/SOURCES.txt
+src/nczarr_viewer.egg-info/dependency_links.txt
+src/nczarr_viewer.egg-info/requires.txt
+src/nczarr_viewer.egg-info/top_level.txt

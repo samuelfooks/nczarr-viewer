@@ -1,74 +1,39 @@
-# Makefile for generating presentations from Marp markdown files
+# Minimal makefile for Sphinx documentation
+#
 
-# Default target
-doall: pdf html sphinx
+# You can set these variables from the command line, and also
+# from the environment for the first two.
+SPHINXOPTS    ?=
+SPHINXBUILD   ?= sphinx-build
+SOURCEDIR     = source
+BUILDDIR      = build
 
-# Generate PDF from Marp markdown
-pdf: dash_nczarr_viewer_presentation.pdf
-
-# Generate HTML from Marp markdown
-html: dash_nczarr_viewer_presentation.html
-
-# Generate Sphinx HTML documentation
-sphinx: sphinx-html
-
-# Sphinx HTML generation
-sphinx-html:
-	@echo "Building Sphinx HTML documentation..."
-	../.venv/bin/sphinx-build -b html source build/html
-
-# PDF generation
-dash_nczarr_viewer_presentation.pdf: dash_nczarr_viewer_presentation.md
-	@echo "Generating PDF from $<..."
-	marp --theme-set ../assets/marp.css --pdf $< --output $@
-
-# HTML generation
-dash_nczarr_viewer_presentation.html: dash_nczarr_viewer_presentation.md
-	@echo "Generating HTML from $<..."
-	marp --theme-set ../assets/marp.css --html $< --output $@
-
-# Generate both formats
-presentations: pdf html
-	@echo "Generated both PDF and HTML presentations"
-
-# Clean generated files
-clean:
-	@echo "Cleaning generated files..."
-	rm -f *.pdf
-	rm -f dash_nczarr_viewer_presentation.html
-	rm -rf build/
-	rm -rf _build/
-	rm -rf _static/
-	rm -rf _sources/
-	rm -f *.js
-	rm -f .buildinfo
-	rm -f objects.inv
-	rm -f searchindex.js
-
-# Install Marp CLI (if not already installed)
-install-marp:
-	@echo "Installing Marp CLI..."
-	npm install -g @marp-team/marp-cli
-
-# Check if Marp is installed
-check-marp:
-	@which marp || (echo "Marp CLI not found. Run 'make install-marp' to install it." && exit 1)
-
-# Help target
+# Put it first so that "make" without argument is like "make help".
 help:
-	@echo "Available targets:"
-	@echo "  doall            - Generate both PDF and HTML presentations and Sphinx docs (default)"
-	@echo "  pdf              - Generate PDF presentation"
-	@echo "  html             - Generate HTML presentation"
-	@echo "  sphinx           - Generate Sphinx HTML documentation"
-	@echo "  sphinx-html      - Generate Sphinx HTML documentation"
-	@echo "  presentations    - Generate both PDF and HTML presentations"
-	@echo "  clean            - Remove generated files"
-	@echo "  install-marp     - Install Marp CLI"
-	@echo "  check-marp       - Check if Marp CLI is installed"
-	@echo "  help             - Show this help message"
+	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-# Ensure Marp is installed before generating files
-pdf html: check-marp
+# Build Sphinx HTML documentation
+html:
+	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: doall pdf html sphinx sphinx-html presentations clean install-marp check-marp help
+# Build PDF presentation
+presentationpdf: nczarr_viewer_presentation.pdf
+
+# Build HTML presentation
+presentationhtml: nczarr_viewer_presentation.html
+
+# Rule to build PDF from markdown using pandoc
+nczarr_viewer_presentation.pdf: nczarr_viewer_presentation.md
+	pandoc $< -o $@ --pdf-engine=xelatex -V geometry:margin=1in
+
+# Rule to build HTML from markdown using pandoc
+nczarr_viewer_presentation.html: nczarr_viewer_presentation.md
+	pandoc $< -o $@ --standalone --css=../assets/marp.css
+# Catch-all target: route all unknown targets to Sphinx using the new
+# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+%: Makefile
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	touch $(BUILDDIR)/html/.nojekyll
+clean:
+	rm -rf $(BUILDDIR)/*
+	rm -f nczarr_viewer_presentation.html

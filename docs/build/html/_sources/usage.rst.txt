@@ -48,7 +48,7 @@ Quick Docker Run
 .. code-block:: bash
 
    # Pull and run the latest image
-   docker run -p 8050:8050 samfooks/zarr-netcdf-viewer:latest
+   docker run -p 8050:8050 samfooks/nczarr-viewer:latest
 
 With Local Files
 ^^^^^^^^^^^^^^^^
@@ -58,7 +58,7 @@ With Local Files
 
    .. code-block:: bash
 
-      docker run -v $(pwd)/myfiles:/app/myfiles -p 8050:8050 samfooks/zarr-netcdf-viewer:latest
+      docker run -v $(pwd)/myfiles:/app/myfiles -p 8050:8050 samfooks/nczarr-viewer:latest
 
 3. Once the container is running, open your browser to `http://localhost:8050`
 4. Enter the path to your dataset: `/app/myfiles/Water_body_chlorophyll-a.nc`
@@ -70,7 +70,7 @@ Access Zarr datasets directly from cloud storage:
 
 .. code-block:: bash
 
-   docker run -p 8050:8050 samfooks/zarr-netcdf-viewer:latest
+   docker run -p 8050:8050 samfooks/nczarr-viewer:latest
 
 Once the container is running:
 1. Open your browser to `http://localhost:8050`
@@ -84,7 +84,7 @@ For NetCDF files stored on S3-compatible storage (like Minio), add `#mode=bytes`
 .. code-block:: bash
 
    # Example for Minio/EDITO storage
-   docker run -p 8050:8050 samfooks/zarr-netcdf-viewer:latest
+   docker run -p 8050:8050 samfooks/nczarr-viewer:latest
 
 Once the container is running:
 1. Open your browser to `http://localhost:8050`
@@ -108,7 +108,7 @@ To access Copernicus Marine Service datasets:
 
    .. code-block:: bash
 
-      docker run -e CMEMS_USERNAME=$CMEMS_USERNAME -e CMEMS_PASSWORD=$CMEMS_PASSWORD -p 8050:8050 samfooks/zarr-netcdf-viewer:latest
+      docker run -e CMEMS_USERNAME=$CMEMS_USERNAME -e CMEMS_PASSWORD=$CMEMS_PASSWORD -p 8050:8050 samfooks/nczarr-viewer:latest
 
 Configuration
 -------------

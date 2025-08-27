@@ -4,48 +4,44 @@ This directory contains the documentation for the NCZarr Viewer project.
 
 ## Building Documentation
 
-To build all documentation, run from the `docs` directory:
+### Prerequisites
+- Python 3.10+
+- Sphinx
+- Pandoc (for presentation generation)
+
+### Build Commands
 
 ```bash
-make doall
+# Build Sphinx HTML documentation
+make html
+
+# Build PDF presentation
+make pdf
+
+# Build HTML presentation
+make html-presentation
+
+# Clean build artifacts
+make clean
 ```
 
-This will:
-- Generate Sphinx HTML documentation in `build/html/`
-- Generate PDF presentation from Marp markdown
-- Generate HTML presentation from Marp markdown
+### Generated Files
 
-## Individual Build Targets
+After building, you'll find:
 
-- `make sphinx` - Build only Sphinx HTML documentation
-- `make pdf` - Generate only PDF presentation
-- `make html` - Generate only HTML presentation
-- `make clean` - Remove all generated files
+- **Sphinx HTML**: Open `build/html/index.html` in your browser
+- **HTML Presentation**: Open `nczarr_viewer_presentation.html` in your browser
+- **PDF Presentation**: Open `nczarr_viewer_presentation.pdf`
 
-## Viewing Documentation
+## Documentation Structure
 
-After building, you can view the documentation:
+- `source/` - Sphinx source files
+- `build/` - Generated documentation (after building)
+- `nczarr_viewer_presentation.md` - Main presentation file
+- `Makefile` - Build configuration
 
-- **Sphinx Docs**: Open `build/html/index.html` in your browser
-- **HTML Presentation**: Open `dash_nczarr_viewer_presentation.html` in your browser
-- **PDF Presentation**: Open `dash_nczarr_viewer_presentation.pdf`
+## Notes
 
-## GitHub Pages
-
-The documentation is configured to work with GitHub Pages. The main entry point (`index.html`) will automatically redirect to the built Sphinx documentation.
-
-## Requirements
-
-- Python 3.10+ with virtual environment
-- Marp CLI for presentation generation
-- Sphinx with Read the Docs theme
-
-## Installation
-
-```bash
-# Install Marp CLI (if not already installed)
-make install-marp
-
-# Check if Marp is installed
-make check-marp
-```
+- The Sphinx documentation is configured to work with GitHub Pages
+- Presentations are generated using Pandoc from Markdown
+- The `_modules/` directory contains auto-generated module documentation
