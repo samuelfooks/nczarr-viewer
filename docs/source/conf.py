@@ -29,6 +29,25 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_css_files = ['custom.css']
+html_js_files = ['custom.js']
+
+# GitHub Pages specific settings
+html_use_relative_urls = False
+html_baseurl = 'https://samuelfooks.github.io/nczarr-viewer/'
+
+# Theme options
+html_theme_options = {
+    'navigation_depth': 4,
+    'collapse_navigation': False,
+    'sticky_navigation': True,
+    'includehidden': True,
+    'titles_only': False,
+    'style_nav_header_background': '#667eea',
+    'logo_only': False,
+    'prev_next_buttons_location': 'both',
+    'style_external_links': True,
+}
 
 # Options for PDF output
 latex_elements = {

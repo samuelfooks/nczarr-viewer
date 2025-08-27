@@ -15,7 +15,7 @@ sphinx: sphinx-html
 # Sphinx HTML generation
 sphinx-html:
 	@echo "Building Sphinx HTML documentation..."
-	../.venv/bin/sphinx-build -b html source build/html
+	../.venv/bin/sphinx-build -b html -D html_baseurl=https://samuelfooks.github.io/nczarr-viewer/build/html/ source build/html
 
 # Copy Sphinx index to root for GitHub Pages
 sphinx-deploy: sphinx-html
