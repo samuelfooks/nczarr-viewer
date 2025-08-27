@@ -3,139 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NCZarr Viewer - Documentation</title>
-    <script>
-        // Redirect logic for GitHub Pages - fixed to prevent infinite loops
-        function redirectToDocs() {
-            const currentPath = window.location.pathname;
-            
-            // If we're on GitHub Pages
-            if (currentPath.includes('/nczarr-viewer/')) {
-                // If we're already in the build/html directory, stay here
-                if (currentPath.includes('/build/html/')) {
-                    return; // Already in the right place
-                }
-                
-                // If we're at the docs root, redirect to built docs
-                if (currentPath.endsWith('/docs/') || currentPath.endsWith('/docs')) {
-                    // Check if we're not already in a build subdirectory
-                    if (!currentPath.includes('/_build/') && !currentPath.includes('/build/')) {
-                        window.location.href = './build/html/index.html';
-                        return;
-                    }
-                }
-                
-                // If we're at the repository root, redirect to docs
-                if (currentPath === '/nczarr-viewer/' || currentPath === '/nczarr-viewer') {
-                    window.location.href = '/nczarr-viewer/docs/';
-                    return;
-                }
-            } else {
-                // Local development - redirect to built docs
-                if (!currentPath.includes('/build/')) {
-                    window.location.href = './build/html/index.html';
-                }
-            }
-        }
-        
-        // Only redirect if we're not already in the right place
-        const currentPath = window.location.pathname;
-        if (!currentPath.includes('/build/html/')) {
-            // Auto-redirect after a short delay
-            setTimeout(redirectToDocs, 1000);
-        }
-    </script>
+    <title>NCZarr Viewer Documentation</title>
+    <meta http-equiv="refresh" content="0; url=build/html/index.html">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
             max-width: 600px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
         }
-        h1 { 
-            margin-bottom: 20px; 
-            font-size: 2.5rem;
-            font-weight: 700;
+        .redirect-message {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
         }
-        .redirecting { 
-            margin: 20px 0; 
-            opacity: 0.9;
-            font-size: 1.1rem;
-        }
-        .link { 
+        .redirect-link {
             display: inline-block;
-            margin: 10px;
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.2);
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #007bff;
             color: white;
             text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            transition: background-color 0.2s;
         }
-        .link:hover { 
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .primary {
-            background: rgba(255, 255, 255, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            font-weight: 600;
-        }
-        .warning {
-            background: rgba(255, 193, 7, 0.2);
-            border: 2px solid rgba(255, 193, 7, 0.4);
-            color: #ffc107;
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
+        .redirect-link:hover {
+            background: #0056b3;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>NCZarr Viewer</h1>
-        <p class="redirecting">
-            <span class="spinner"></span>
-            Redirecting to documentation...
-        </p>
-        
-        <p>If you're not redirected automatically, click one of these links:</p>
-        
-        <a href="./build/html/index.html" class="link primary">📚 Sphinx Documentation</a>
-        <a href="./dash_nczarr_viewer_presentation.html" class="link">📖 Project Presentation</a>
-        <a href="./dash_nczarr_viewer_presentation.pdf" class="link">📄 PDF Documentation</a>
-        
-        <div class="warning">
-            <strong>Note:</strong> Make sure you've run <code>make doall</code> in the docs directory to build all documentation before viewing.
-        </div>
+    <div class="redirect-message">
+        <h1>NCZarr Viewer Documentation</h1>
+        <p>You are being redirected to the documentation...</p>
+        <p>If you are not redirected automatically, click the link below:</p>
+        <a href="build/html/index.html" class="redirect-link">View Documentation</a>
     </div>
 </body>
 </html>
