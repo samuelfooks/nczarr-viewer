@@ -5,15 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NCZarr Viewer - Documentation</title>
     <script>
-        // Detect if we're on GitHub Pages or local and redirect accordingly
+        // Redirect logic for GitHub Pages
         function redirectToDocs() {
-            // Always try to redirect to the local Sphinx docs first
-            // This works for both local development and GitHub Pages
-            window.location.href = './_build/html/index.html';
+            const currentPath = window.location.pathname;
+            
+            // If we're on GitHub Pages, redirect to the built Sphinx docs
+            if (currentPath.includes('/nczarr-viewer/')) {
+                // Check if we're already in the right place
+                if (currentPath.includes('/build/html/')) {
+                    return; // Already in the right place
+                }
+                
+                // If we're at the docs root, redirect to built docs
+                if (currentPath.endsWith('/docs/') || currentPath.endsWith('/docs')) {
+                    window.location.href = './build/html/index.html';
+                    return;
+                }
+                
+                // If we're at the repository root, redirect to docs
+                if (currentPath === '/nczarr-viewer/' || currentPath === '/nczarr-viewer') {
+                    window.location.href = '/nczarr-viewer/docs/';
+                    return;
+                }
+            } else {
+                // Local development - redirect to built docs
+                window.location.href = './build/html/index.html';
+            }
         }
         
         // Auto-redirect after a short delay
         setTimeout(redirectToDocs, 1000);
+        
+        // Also redirect immediately if we're in the wrong place
+        redirectToDocs();
     </script>
     <style>
         body {
@@ -79,6 +103,14 @@
             border: 2px solid rgba(255, 255, 255, 0.4);
             font-weight: 600;
         }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.4);
+            color: #ffc107;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -91,9 +123,13 @@
         
         <p>If you're not redirected automatically, click one of these links:</p>
         
-        <a href="./_build/html/index.html" class="link primary">📚 Sphinx Documentation</a>
+        <a href="./build/html/index.html" class="link primary">📚 Sphinx Documentation</a>
         <a href="./dash_nczarr_viewer_presentation.html" class="link">📖 Project Presentation</a>
         <a href="./dash_nczarr_viewer_presentation.pdf" class="link">📄 PDF Documentation</a>
+        
+        <div class="warning">
+            <strong>Note:</strong> Make sure you've run <code>make doall</code> in the docs directory to build all documentation before viewing.
+        </div>
     </div>
 </body>
 </html>

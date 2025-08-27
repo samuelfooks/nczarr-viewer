@@ -1,0 +1,28 @@
+/* Custom CSS for NCZarr Viewer Documentation */
+
+/* Custom styling for the documentation */
+.wy-nav-content {
+    max-width: 1200px;
+}
+
+/* Custom styling for code blocks */
+.highlight {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+}
+
+/* Custom styling for external links */
+a.external {
+    color: #667eea;
+}
+
+/* Custom styling for the navigation */
+.wy-nav-side {
+    background-color: #2c3e50;
+}
+
+/* Custom styling for the search box */
+.wy-side-nav-search {
+    background-color: #667eea;
+}

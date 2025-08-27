@@ -1,0 +1,2 @@
+# This file tells GitHub Pages not to process this directory with Jekyll
+# This ensures that static files like the built Sphinx documentation are served correctly

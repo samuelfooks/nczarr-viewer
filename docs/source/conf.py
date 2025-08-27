@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'dash_nczarr_viewer'
+project = 'nczarr-viewer'
 author = 'Samuel Fooks'
 release = '0.1.0'
 
@@ -28,13 +28,13 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_static_path = ['static']
 html_css_files = ['custom.css']
-html_js_files = ['custom.js']
+html_js_files = ['custom.js', 'redirect.js']
 
-# GitHub Pages specific settings
-html_use_relative_urls = False
-html_baseurl = 'https://samuelfooks.github.io/nczarr-viewer/'
+# GitHub Pages specific settings - these ensure proper URL handling
+html_use_relative_urls = True
+html_baseurl = '/nczarr-viewer/'
 html_show_sourcelink = False
 
 # Theme options

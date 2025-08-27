@@ -51,8 +51,8 @@ Documentation Contents
 Additional Resources
 ===================
 
-- **GitHub Repository**: https://github.com/samuelfooks/nczarr-viewer
-- **Docker Hub**: samfooks/nczarr-viewer
+- **GitHub Repository**: https://github.com/samuelfooks/zarr-netcdf-viewer
+- **Docker Hub**: samfooks/zarr-netcdf-viewer
 
 Indices and tables
 ==================

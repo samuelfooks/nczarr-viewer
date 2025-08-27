@@ -1,7 +1,7 @@
 # Makefile for generating presentations from Marp markdown files
 
 # Default target
-all: pdf html sphinx
+doall: pdf html sphinx
 
 # Generate PDF from Marp markdown
 pdf: dash_nczarr_viewer_presentation.pdf
@@ -15,7 +15,7 @@ sphinx: sphinx-html
 # Sphinx HTML generation
 sphinx-html:
 	@echo "Building Sphinx HTML documentation..."
-	../.venv/bin/sphinx-build -b html source _build/html
+	../.venv/bin/sphinx-build -b html source build/html
 
 # PDF generation
 dash_nczarr_viewer_presentation.pdf: dash_nczarr_viewer_presentation.md
@@ -34,8 +34,10 @@ presentations: pdf html
 # Clean generated files
 clean:
 	@echo "Cleaning generated files..."
-	rm -f *.pdf *.html
+	rm -f *.pdf
+	rm -f dash_nczarr_viewer_presentation.html
 	rm -rf build/
+	rm -rf _build/
 	rm -rf _static/
 	rm -rf _sources/
 	rm -f *.js
@@ -55,7 +57,7 @@ check-marp:
 # Help target
 help:
 	@echo "Available targets:"
-	@echo "  all              - Generate both PDF and HTML presentations and Sphinx docs (default)"
+	@echo "  doall            - Generate both PDF and HTML presentations and Sphinx docs (default)"
 	@echo "  pdf              - Generate PDF presentation"
 	@echo "  html             - Generate HTML presentation"
 	@echo "  sphinx           - Generate Sphinx HTML documentation"
@@ -69,4 +71,4 @@ help:
 # Ensure Marp is installed before generating files
 pdf html: check-marp
 
-.PHONY: all pdf html sphinx sphinx-html presentations clean install-marp check-marp help
+.PHONY: doall pdf html sphinx sphinx-html presentations clean install-marp check-marp help
