@@ -4,7 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NCZarr Viewer - Documentation</title>
-    <meta http-equiv="refresh" content="0; url=_build/html/index.html">
+    <script>
+        // Detect if we're on GitHub Pages or local and redirect accordingly
+        function redirectToDocs() {
+            // Always try to redirect to the local Sphinx docs first
+            // This works for both local development and GitHub Pages
+            window.location.href = './_build/html/index.html';
+        }
+        
+        // Auto-redirect after a short delay
+        setTimeout(redirectToDocs, 1000);
+    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -64,6 +74,11 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .primary {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -76,9 +91,9 @@
         
         <p>If you're not redirected automatically, click one of these links:</p>
         
-        <a href="_build/html/index.html" class="link">📚 Sphinx Documentation</a>
-        <a href="dash_nczarr_viewer_presentation.html" class="link">📖 Project Presentation</a>
-        <a href="dash_nczarr_viewer_presentation.pdf" class="link">📄 PDF Documentation</a>
+        <a href="./_build/html/index.html" class="link primary">📚 Sphinx Documentation</a>
+        <a href="./dash_nczarr_viewer_presentation.html" class="link">📖 Project Presentation</a>
+        <a href="./dash_nczarr_viewer_presentation.pdf" class="link">📄 PDF Documentation</a>
     </div>
 </body>
 </html>
