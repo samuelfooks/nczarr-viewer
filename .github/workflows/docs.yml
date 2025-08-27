@@ -37,6 +37,7 @@ jobs:
           if [ -f pyproject.toml ] || [ -f setup.py ]; then pip install -e .; fi
 
       - name: Build with Makefile (clean + html)
+        working-directory: docs
         run: |
           make clean
           make html
