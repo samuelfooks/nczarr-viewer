@@ -1,31 +1,42 @@
 # Dash NCZarr Viewer
 
-### A Simple Geo NetCDF and Zarr Dataset Viewing App
+### A Modern, Interactive NetCDF and Zarr Dataset Viewer
 
-This application allows you to view local NetCDF files or online Zarr files.
+A powerful web application for exploring and visualizing geospatial NetCDF and Zarr datasets with an intuitive interface. Built with Dash and optimized for both local development and cloud deployment.
 
-## Quick Start (Local Development)
+## ✨ Features
 
-### Option 1: Using the run script (Recommended)
+- **🌍 Multi-Format Support**: NetCDF, Zarr, HDF5, and GRIB files
+- **☁️ Cloud Storage**: Direct S3, Minio, and cloud storage access
+- **🌊 Marine Data**: Copernicus Marine Service (CMEMS) integration
+- **📊 Interactive Visualization**: Dynamic plotting with Plotly and Matplotlib
+- **🔍 Smart Data Exploration**: Variable browsing, dimension filtering, and statistics
+- **📱 Responsive Design**: Works on desktop, tablet, and mobile devices
+- **🐳 Docker Ready**: Containerized for easy deployment
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.10+ 
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+
+### Option 1: Using uv (Recommended)
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Clone the repository
+git clone https://github.com/samuelfooks/dash_nczarr_viewer.git
+cd dash_nczarr_viewer
 
-# Run the viewer
-python run.py
-```
-
-### Option 2: Using uv (if you have uv installed)
-```bash
-# Install dependencies
+# Install dependencies and run
 uv sync
-
-# Run the viewer
 python run.py
 ```
 
-### Option 3: Install as a package
+### Option 2: Using pip
 ```bash
+# Clone the repository
+git clone https://github.com/samuelfooks/dash_nczarr_viewer.git
+cd dash_nczarr_viewer
+
 # Install in development mode
 pip install -e .
 
@@ -33,71 +44,122 @@ pip install -e .
 python run.py
 ```
 
-The viewer will be available at http://localhost:8050
+The viewer will be available at **http://localhost:8050**
 
-## Development
+## 📁 Supported Data Sources
+
+- **Local Files**: NetCDF, Zarr, HDF5, GRIB
+- **Cloud Storage**: S3, Google Cloud Storage, Azure Blob
+- **Personal Cloud Storage**: [Minio storage](https://datalab.dive.edito.eu/file-explorer) on EDITO
+- **Marine Data**: Copernicus Marine Service (CMEMS)
+- **EDITO Integration**: STAC catalogs and ARCO data
+
+## 🔧 Configuration
+
+### S3/Cloud Storage Access
+For NetCDF files stored on S3-compatible storage (like Minio), add `#mode=bytes` to the end of your URL:
+
+```
+https://minio.lab.dive.edito.eu/oidc-YOURUSERNAME/folder/mynetcdf.nc#mode=bytes
+```
+
+This ensures proper binary data access for NetCDF files in object storage.
+
+### CMEMS Integration
+To access CMEMS datasets, you may need an account using [Copernicus Marine Toolbox](https://help.marine.copernicus.eu/en/articles/7949409-copernicus-marine-toolbox-introduction#h_9172b5c79a):
+
+```bash
+# Set environment variables
+export CMEMS_USERNAME=your_username
+export CMEMS_PASSWORD=your_password
+```
+
+## 🐳 Docker Deployment
+
+### Quick Docker Run
+```bash
+# Pull and run the latest image
+docker run -p 8050:8050 samfooks/zarr-netcdf-viewer:latest
+```
+
+### With Local Files
+```bash
+# Mount a local directory with NetCDF files
+docker run -v $(pwd)/myfiles:/app/myfiles -p 8050:8050 \
+  samfooks/zarr-netcdf-viewer:latest
+```
+
+### Accessing Data
+Once the container is running:
+1. Open your browser to `http://localhost:8050`
+2. Enter the URL or path to your dataset:
+   - **Local files**: Use `/app/myfiles/yourfile.nc` (if mounted)
+   - **S3/Cloud storage**: Use the full URL with `#mode=bytes` if needed
+   - **Zarr datasets**: Use the direct Zarr store URL
+
+## 🏗️ Development
 
 ### Project Structure
 ```
 dash-nczarr-viewer/
 ├── src/                    # Source code
-│   ├── zarr_data_viewer.py    # Main application
+│   ├── zarr_data_viewer.py    # Main Dash application
+│   ├── data.py               # Data loading and processing
 │   ├── variables.py           # Variable selection logic
 │   ├── dimension.py           # Dimension handling
-│   ├── data.py               # Data display and plotting
-│   └── layout_manager.py     # UI layout management
-├── run.py                  # Quick local runner
-├── requirements.txt         # Python dependencies
-├── pyproject.toml          # Project configuration
-└── Dockerfile              # Docker configuration
+│   └── assets/               # CSS and static assets
+├── docs/                   # Documentation
+├── run.py                  # Local development runner
+├── pyproject.toml          # Project configuration and dependencies
+├── uv.lock                 # Locked dependency versions
+└── Dockerfile              # Container configuration
 ```
 
-### Making Changes
-1. Edit files in the `src/` directory
-2. Run `python run.py` to test your changes
-3. The app will automatically reload when you save changes (in debug mode) 
+### Development Workflow
+1. **Install dependencies**: `uv sync`
+2. **Make changes**: Edit files in `src/`
+3. **Test locally**: `python run.py`
+4. **Auto-reload**: Changes automatically reload in debug mode
 
-## Features
+### Key Dependencies
+- **Dash**: Web framework for building analytical web applications
+- **xarray**: N-D labeled arrays and datasets
+- **zarr**: Chunked, compressed, N-dimensional arrays
+- **plotly**: Interactive plotting library
+- **cartopy**: Cartographic projections and transformations
+- **copernicusmarine**: Access to Copernicus Marine data
 
-- **Variable Selection**: Displays all available variables for selection.
-- **Dimension Filtering**: Allows selection of dimensions (latitude and longitude must be available).
-- **Array Selection**: Choose values from dimensions to select the array you need to view.
-- **Quick Statistics**: Calculate Max, Min, Mean, Median, and Standard Deviation for the selected array.
-- **Data Plotting**: Plot data using Matplotlib and Cartopy.
-- **CMEMS Support**: Automatically detects CMEMS URLs and uses the Copernicus Marine Toolbox for optimal data access.
+## 📚 Documentation
 
-### Requirements
+- **API Reference**: See `docs/source/` for detailed documentation
+- **Presentation**: Check `docs/dash_nczarr_viewer_presentation.md` for usage examples
+- **Examples**: Explore `docs/explore_data/` for sample datasets and workflows
 
-CMEMS support requires the `copernicusmarine` package, which is included in the project dependencies.
+## 🤝 Contributing
 
-## Usage
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-### Local Development vs Docker
+## 📄 License
 
-- **Local Development**: Use the quick start methods above for development, testing, and when you want to modify the code
-- **Docker**: Use Docker for production deployment or when you want a consistent environment
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Running with a Local NetCDF File
+## 👨‍💻 Author
 
-1. Place your NetCDF file (ex 'Water_body_chlorophyll-a.nc') in a folder named `myfiles`.
-2. Run the following Docker command:
-    ```bash
-    docker run -v $(pwd)/myfiles:/app/myfiles -p 8050:8050 samfooks/zarrdashapp:latest /app/myfiles/Water_body_chlorophyll-a.nc
-    ```
+**Samuel Fooks** - [samuel.fooks@gmail.com](mailto:samuel.fooks@gmail.com)
 
-### Running with an Online Zarr File
+- **GitHub**: [https://github.com/samuelfooks/dash_nczarr_viewer](https://github.com/samuelfooks/dash_nczarr_viewer)
+- **Docker Hub**: [samfooks/zarr-netcdf-viewer](https://hub.docker.com/r/samfooks/zarr-netcdf-viewer)
 
-Run the following Docker command:
-```bash
-docker run -it -p 8050:8050 samfooks/zarr-netcdf-viewer:latest https://s3.waw3-1.cloudferro.com/mdl-arco-geo-041/arco/NWSHELF_ANALYSISFORECAST_BGC_004_002/cmems_mod_nws_bgc_anfc_0.027deg-3D_P1D-m_202311/geoChunked.zarr
-```
+## 🆘 Support
 
-### Running with a NetCDF stored on s3
+- **Issues**: [GitHub Issues](https://github.com/samuelfooks/dash_nczarr_viewer/issues)
+- **Documentation**: Check the `docs/` folder
+- **Examples**: See `docs/explore_data/` for sample workflows
 
-If your NetCDF is stored on an s3 bucket, you can add '#mode=bytes' to the end of the link and it can be used.
-For example a NetCDF stored on your personal s3 storage that is publicly viewable.
+---
 
-'https://minio.lab.dive.edito.eu/oidc-YOURUSERNAME/folder/mynetcdf.nc#mode=bytes'
-```bash
-docker run -it -p 8050:8050 samfooks/zarr-netcdf-viewer:latest https://minio.lab.dive.edito.eu/oidc-YOURUSERNAME/folder/mynetcdf.nc#mode=bytes
-```
+**Happy Data Exploring! 🌊📊**

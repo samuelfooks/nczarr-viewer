@@ -1,29 +1,26 @@
 ---
 marp: true
 paginate: true
-theme: default
-title: Dash NCZarr Viewer
+theme: edito-tutorials
+title: NCZarr Viewer
 subtitle: Exploring and Subsetting Zarr & NetCDF Data
 author: Samuel Fooks
 ---
 
-# 🌊 Dash NCZarr Viewer
+# 🌊 NetCDF Zarr Viewer
 
-## A Tool for R Users to Explore Ocean Data
-
+## A Tool to Explore cloud data
 **Samuel Fooks** - VLIZ  
-**Making NetCDF/Zarr Data Accessible to Everyone**
+**Making public NetCDF/Zarr Data Accessible to Everyone**
 
 ---
 
-# 🎯 What is Dash NCZarr Viewer?
+# NCZarr Viewer
 
-A **web-based application** that helps R users and beginners:
-
-- 📊 **Load and explore** NetCDF and Zarr datasets without coding
+- 📊 **Load and explore** NetCDF and Zarr datasets
 - 🔍 **Browse variables** and dimensions through a simple interface
 - ✂️ **Subset data** by time, space, and other dimensions visually
-- 📈 **Visualize results** with interactive plots (no ggplot2 needed!)
+- 📈 **Visualize results** with interactive plots
 - 🌍 **Access cloud data** directly from S3 buckets
 - 🚀 **Work with large datasets** efficiently
 - 🐳 **Containerized** for easy deployment and sharing
@@ -32,29 +29,21 @@ A **web-based application** that helps R users and beginners:
 
 # 🏗️ Architecture Overview
 
-```mermaid
-graph TD
-    A[User Interface] --> B[Dash App]
-    B --> C[Data Manager]
-    C --> D[Dataset Loader]
-    D --> E[Xarray Backend]
-    E --> F[NetCDF4/Zarr Engines]
-    
-    B --> G[Variable Selection]
-    B --> H[Dimension Selection]
-    B --> I[Data Visualization]
-```
 
-**Built with modern Python data science stack**
+👤 User Interface  →  🚀 Dash App  →  🗄️ Data Engine
+         ↓                   ↓                ↓
+    🖥️ Web Browser    🐍 Python Core    📊 Xarray
+         ↓                   ↓                ↓
+    🎨 Interactive UI   🔧 Data Manager   📁 NetCDF/Zarr
 
 ---
 
 # 🛠️ Technology Stack
 
-- **Frontend**: Dash + Bootstrap Components (similar to R Shiny!)
-- **Data Processing**: Xarray + NumPy (Python equivalent of R's ncdf4, raster)
-- **File Formats**: NetCDF4, Zarr (same formats R can read)
-- **Visualization**: Plotly, Matplotlib, Cartopy (interactive plots like R's leaflet)
+- **Frontend**: Dash + Bootstrap Components
+- **Data Processing**: Xarray + NumPy
+- **File Formats**: NetCDF4, Zarr
+- **Visualization**: Plotly, Matplotlib, Cartopy 
 - **Cloud Access**: S3FS, FSSpec (cloud storage access)
 - **Marine Data**: Copernicus Marine Toolbox integration
 
@@ -62,10 +51,9 @@ graph TD
 
 # 🚀 Quick Start
 
-## For R Users - No Python Required!
 
 ```bash
-# Option 1: Use Docker (Recommended for beginners)
+# Option 1: Use Docker
 docker run -p 8050:8050 samfooks/zarr-netcdf-viewer:latest
 
 # Option 2: Local development (if you have Python)
@@ -83,10 +71,9 @@ python run.py
 
 # 📁 Supported Data Sources
 
-- **Local Files**: NetCDF, Zarr
+- **EDITO Integration**: ARCO datasets from the EDITO STAC
 - **Personal Cloud Storage**: [Minio storage](https://datalab.dive.edito.eu/file-explorer) on EDITO
-- **Marine Data**: Copernicus Marine Service (CMEMS)
-- **EDITO Integration**: STAC catalogs and ARCO data
+- **Local Files**: NetCDF, Zarr
 
 ---
 
@@ -100,7 +87,7 @@ python run.py
 ## Visualization
 - **Interactive Maps**: Cartopy-based geographic plots
 - **Time Series**: Plotly charts for temporal data
-- **Statistical Analysis**: Basic stats, trends, and summaries
+- **Statistical Analysis**: Basic stats, and summaries
 
 ---
 
@@ -112,9 +99,9 @@ python run.py
 - **Geology**: Seafloor characteristics
 - **STAC Access**: Browse collections and datasets
 
-## Copernicus Marine
-- **Direct Access**: CMEMS credentials integration
-- **Multiple Formats**: NetCDF, Zarr, GRIB support
+## Copernicus Marine 
+- **Direct Access**: CMEMS credentials integration (you will need an account)
+- **Multiple Formats**: NetCDF, Zarr (and others in future)
 - **Real-time Data**: Latest ocean observations
 
 ---
@@ -123,8 +110,6 @@ python run.py
 
 - **Chunked Processing**: Handle datasets larger than memory
 - **Lazy Loading**: Only load data when needed
-- **Caching**: Store frequently accessed data
-- **Parallel Processing**: Multi-core data operations
 - **Cloud Optimization**: Efficient S3 data access
 
 ---
@@ -147,59 +132,37 @@ docker run -p 8050:8050 nczarr-viewer
 
 ---
 
-# 📊 Use Cases
+# 🌊 Live Demo Time! 
+##### Loading a NetCDF from your Minio bucket on EDITO
 
-## For Beginners
-- **Data Exploration**: Understand dataset structure
-- **Quick Visualizations**: Create plots without coding
-- **Data Subsetting**: Extract regions of interest
-
-## For Advanced Users
-- **Data Validation**: Check data quality and coverage
-- **Preprocessing**: Prepare data for analysis
-- **Integration**: Embed in larger workflows
-
----
-
-# 🔮 Future Development
-
-- **R Integration**: Direct R package support
-- **Advanced Analytics**: Statistical modeling tools
-- **Collaboration**: Multi-user editing and sharing
-- **Mobile Support**: Responsive design for tablets
-- **API Access**: REST endpoints for automation
-
----
-
-# 🎯 Key Takeaways
-
-1. **Accessible**: No coding required for basic operations
-2. **Powerful**: Handles large datasets efficiently
-3. **Flexible**: Works with multiple data sources
-4. **Containerized**: Easy deployment and sharing
-5. **R-Friendly**: Familiar interface for R users
 
 ---
 
 # 🌊 Live Demo Time!
+##### Explore CMEMs data using a link to a zarr file, obtained from MyOceanViewer
 
-## Let's Explore Some Real Data!
 
-**3-5 minutes to show:**
-- Loading a dataset
-- Browsing variables
-- Subsetting data
-- Creating visualizations
-- Exporting results
+---
 
-**Questions & Discussion**
+# 🌊 Live Demo Time!
+##### Explore data on your local PC you downloaded(boring)
+
+
+---
+
+# 🔮 Future Developments
+
+- **More Interactive Visualization**: More interactive global maps and plots
+- **Advanced Analytics**: Statistical modeling tools/plugins
+- **New ARCO Data types**: Parquet, Geoparquet
+- **Collaboration**: Multi-user editing and sharing
 
 ---
 
 # 🌊 Thank You!
 
-**Samuel Fooks** - samuel.fooks@gmail.com  
-**GitHub**: https://github.com/samuelfooks/dash_nczarr_viewer  
+**Samuel Fooks** - samuel.fooks@vliz.be 
+**GitHub**: [https://github.com/EDITO-Infra/nczarr-viewer](https://github.com/EDITO-Infra/nczarr-viewer)
 **Docker Hub**: samfooks/zarr-netcdf-viewer
 
 **Questions?**

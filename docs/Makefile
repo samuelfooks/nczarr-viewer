@@ -12,12 +12,12 @@ html: dash_nczarr_viewer_presentation.html
 # PDF generation
 dash_nczarr_viewer_presentation.pdf: dash_nczarr_viewer_presentation.md
 	@echo "Generating PDF from $<..."
-	marp --pdf $< --output $@
+	marp --theme-set ../assets/marp.css --pdf $< --output $@
 
 # HTML generation
 dash_nczarr_viewer_presentation.html: dash_nczarr_viewer_presentation.md
 	@echo "Generating HTML from $<..."
-	marp --html $< --output $@
+	marp --theme-set ../assets/marp.css --html $< --output $@
 
 # Generate both formats
 presentations: pdf html

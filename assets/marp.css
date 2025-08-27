@@ -1,0 +1,126 @@
+/* @theme edito-tutorials */
+@import 'default';
+
+:root {
+  --background-gradient: linear-gradient(to bottom, #f0faff, #e6f7ff);
+  --text-color: #00264d;
+  --accent-color: #005b99;
+  --border-color: #99ccff;
+  --font-family: 'Lato', sans-serif;
+  --icon-size: 5vw;
+  --text-size: 3vw;
+}
+
+section {
+  background: var(--background-gradient);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  padding: 5%;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  border: 2px solid var(--border-color);
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* Large globe image on the right side */
+section::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0%;
+  transform: translateY(-50%);
+  background: url('https://github.com/samuelfooks/DTO-Bioflow-M13-technical-workshop/blob/main/assets/images/editoglobe.png?raw=true') no-repeat center right;
+  background-size: 300px;
+  opacity: 0.08;
+  width: 300px;
+  height: 300px;
+  z-index: 0;
+}
+
+/* .logo-strip {
+  position: fixed;
+  bottom: 10px;
+  left: 80%;
+  width: 240px;
+  height: 50px;
+  z-index: 10001;
+
+  background-image:
+    url('https://imgs.search.brave.com/d-hw7pFL55LM9digcP4QIpo5rfEzSGijq4ENLKMo1Vo/rs:fit:32:32:1:0/g:ce/aHR0cDovL2Zhdmlj/b25zLnNlYXJjaC5i/cmF2ZS5jb20vaWNv/bnMvZWNjNjA5MDkz/OTM4OWRiODBiZmM4/ODE2ZTgxNWFmMDlm/MjJlMDliNGJlODYy/MGJhNTRmNTBjYjk4/NjA3YzFmMy9kdG8t/YmlvZmxvdy5ldS8'),
+    url('https://github.com/samuelfooks/DTO-Bioflow-M13-technical-workshop/blob/main/assets/images/copernicus.png?raw=true'),
+    url('https://github.com/samuelfooks/DTO-Bioflow-M13-technical-workshop/blob/main/assets/images/emodnet.png?raw=true'),
+    url('https://github.com/samuelfooks/DTO-Bioflow-M13-technical-workshop/blob/main/assets/images/editofish.png?raw=true');
+
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 50px, 50px, 50px, 50px;
+  background-position:
+    left 0px bottom 0px,
+    left 60px bottom 0px,
+    left 120px bottom 0px,
+    left 180px bottom 0px;
+  opacity: 0.9;
+} */
+
+section::after {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  left: 85%;
+  transform: translateX(-50%);
+  width: 250px;
+  height: 60px;
+  z-index: 10001;
+
+  background-image:
+    url('https://imgs.search.brave.com/d-hw7pFL55LM9digcP4QIpo5rfEzSGijq4ENLKMo1Vo/rs:fit:32:32:1:0/g:ce/aHR0cDovL2Zhdmlj/b25zLnNlYXJjaC5i/cmF2ZS5jb20vaWNv/bnMvZWNjNjA5MDkz/OTM4OWRiODBiZmM4/ODE2ZTgxNWFmMDlm/MjJlMDliNGJlODYy/MGJhNTRmNTBjYjk4/NjA3YzFmMy9kdG8t/YmlvZmxvdy5ldS8'),
+    url('https://github.com/samuelfooks/DTO-Bioflow-M13-technical-workshop/blob/main/assets/images/copernicus.png?raw=true'),
+    url('https://github.com/samuelfooks/DTO-Bioflow-M13-technical-workshop/blob/main/assets/images/emodnet.png?raw=true'),
+    url('https://github.com/samuelfooks/DTO-Bioflow-M13-technical-workshop/blob/main/assets/images/editofishlogo.png?raw=true');
+    
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+
+  background-size:
+    50px;
+    /* 50px,
+    50px,
+    50px; */
+
+  background-position:
+    bottom 0px left 0px,
+    bottom 0px left 60px,
+    bottom 0px left 120px,
+    bottom 0px left 180px;
+
+  opacity: 0.8;
+}
+
+
+h1, h2, h3 {
+  color: var(--accent-color);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+  position: relative;
+  font-size: var(--text-size);
+  animation: slideIn 1s ease-in-out;
+}
+
+.scrollable {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 1em;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: none;
+  font-size: 0.9em;
+  color: var(--text-color);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
