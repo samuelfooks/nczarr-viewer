@@ -57,7 +57,7 @@ author: Samuel Fooks
 docker run -p 8050:8050 samfooks/nczarr-viewer:latest
 
 # Option 2: Local development (if you have Python)
-git clone https://github.com/samuelfooks/nczarr-viewer
+git clone https://[github.com/samuelfooks/nczarr-viewer](https://github.com/EDITO-Infra/nczarr-viewer)
 cd nczarr-viewer
 pip install -r requirements.txt
 python run.py

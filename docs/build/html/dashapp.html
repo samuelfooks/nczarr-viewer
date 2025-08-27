@@ -1,181 +1,106 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
-<head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Viewer Application &mdash; nczarr-viewer 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Viewer Application &#8212; nczarr-viewer 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
 
   
-    <link rel="canonical" href="/nczarr-viewer/dashapp.html" />
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=01f34227"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script src="_static/custom.js"></script>
-      <script src="_static/redirect.js"></script>
-    <script src="_static/js/theme.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
-</head>
+  
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search"  style="background: #667eea" >
+  </head><body>
+  
 
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
           
-          
-          <a href="index.html" class="icon icon-home">
-            nczarr-viewer
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#quick-start">Quick Start</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#local-development">Local Development</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#docker-deployment">Docker Deployment</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="usage.html#quick-docker-run">Quick Docker Run</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage.html#with-local-files">With Local Files</a></li>
-<li class="toctree-l3"><a class="reference internal" href="usage.html#with-online-datasets">With Online Datasets</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#s3-cloud-storage-access">S3/Cloud Storage Access</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#cmems-integration">CMEMS Integration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#configuration">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#troubleshooting">Troubleshooting</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dockerfile.html">Dockerfile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-main">Core Modules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#main.TimeoutException"><code class="docutils literal notranslate"><span class="pre">TimeoutException</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#main.ViewerApp"><code class="docutils literal notranslate"><span class="pre">ViewerApp</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#main.ViewerApp.get_metadata_summary"><code class="docutils literal notranslate"><span class="pre">ViewerApp.get_metadata_summary()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#main.ViewerApp.run"><code class="docutils literal notranslate"><span class="pre">ViewerApp.run()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#main.ViewerApp.setup_callbacks"><code class="docutils literal notranslate"><span class="pre">ViewerApp.setup_callbacks()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#main.ViewerApp.setup_help_modal_callback"><code class="docutils literal notranslate"><span class="pre">ViewerApp.setup_help_modal_callback()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#main.ViewerApp.setup_variable_metadata_callback"><code class="docutils literal notranslate"><span class="pre">ViewerApp.setup_variable_metadata_callback()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#main.ViewerApp.update_variable_dropdown"><code class="docutils literal notranslate"><span class="pre">ViewerApp.update_variable_dropdown()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-data">Data Loading and Processing</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#data.DataManager"><code class="docutils literal notranslate"><span class="pre">DataManager</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DataManager.create_raster_image"><code class="docutils literal notranslate"><span class="pre">DataManager.create_raster_image()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DataManager.setup_callbacks"><code class="docutils literal notranslate"><span class="pre">DataManager.setup_callbacks()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#data.DataPlot"><code class="docutils literal notranslate"><span class="pre">DataPlot</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DataPlot.setup_callbacks"><code class="docutils literal notranslate"><span class="pre">DataPlot.setup_callbacks()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#data.DataQuickStats"><code class="docutils literal notranslate"><span class="pre">DataQuickStats</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DataQuickStats.setup_callbacks"><code class="docutils literal notranslate"><span class="pre">DataQuickStats.setup_callbacks()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#data.DataSubsetter"><code class="docutils literal notranslate"><span class="pre">DataSubsetter</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DataSubsetter.subset_data"><code class="docutils literal notranslate"><span class="pre">DataSubsetter.subset_data()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#data.DatasetLoader"><code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DatasetLoader.clear_logs"><code class="docutils literal notranslate"><span class="pre">DatasetLoader.clear_logs()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DatasetLoader.get_logs"><code class="docutils literal notranslate"><span class="pre">DatasetLoader.get_logs()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DatasetLoader.load_dataset"><code class="docutils literal notranslate"><span class="pre">DatasetLoader.load_dataset()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#data.DatasetLoader.setup_logging"><code class="docutils literal notranslate"><span class="pre">DatasetLoader.setup_logging()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#variable-and-dimension-handling">Variable and Dimension Handling</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#variables.VariableSelection"><code class="docutils literal notranslate"><span class="pre">VariableSelection</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#variables.VariableSelection.setup_callbacks"><code class="docutils literal notranslate"><span class="pre">VariableSelection.setup_callbacks()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#dimension.DimensionSelection"><code class="docutils literal notranslate"><span class="pre">DimensionSelection</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#dimension.DimensionSelection.create_dropdown"><code class="docutils literal notranslate"><span class="pre">DimensionSelection.create_dropdown()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#dimension.DimensionSelection.create_range_slider"><code class="docutils literal notranslate"><span class="pre">DimensionSelection.create_range_slider()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#dimension.DimensionSelection.generate_dimension_checklist"><code class="docutils literal notranslate"><span class="pre">DimensionSelection.generate_dimension_checklist()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#dimension.DimensionSelection.generate_dimension_controls"><code class="docutils literal notranslate"><span class="pre">DimensionSelection.generate_dimension_controls()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#dimension.DimensionSelection.setup_callbacks"><code class="docutils literal notranslate"><span class="pre">DimensionSelection.setup_callbacks()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#main-application-class">Main Application Class</a></li>
-</ul>
-</li>
-</ul>
 
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #667eea" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">nczarr-viewer</a>
-      </nav>
-
-      <div class="wy-nav-content">
-        <div class="rst-content style-external-links">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Viewer Application</li>
-      <li class="wy-breadcrumbs-aside">
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
+          <div class="body" role="main">
+            
   <section id="viewer-application">
-<h1>Viewer Application<a class="headerlink" href="#viewer-application" title="Link to this heading"></a></h1>
+<h1>Viewer Application<a class="headerlink" href="#viewer-application" title="Link to this heading">¶</a></h1>
 </section>
 
 
-           </div>
           </div>
-          <footer>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright .</p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
+          
         </div>
       </div>
-    </section>
-  </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">nczarr-viewer</a></h1>
 
-</body>
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dockerfile.html">Dockerfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/dashapp.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
 </html>

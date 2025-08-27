@@ -13,26 +13,31 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Build Sphinx HTML documentation
-html:
+html: $(BUILDDIR)/html/nczarr_viewer_presentation.html
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Build PDF presentation
 presentationpdf: nczarr_viewer_presentation.pdf
 
 # Build HTML presentation
-presentationhtml: nczarr_viewer_presentation.html
+presentationhtml: $(BUILDDIR)/html/nczarr_viewer_presentation.html
 
 # Rule to build PDF from markdown using pandoc
 nczarr_viewer_presentation.pdf: nczarr_viewer_presentation.md
 	pandoc $< -o $@ --pdf-engine=xelatex -V geometry:margin=1in
 
-# Rule to build HTML from markdown using pandoc
-nczarr_viewer_presentation.html: nczarr_viewer_presentation.md
-	pandoc $< -o $@ --standalone --css=../assets/marp.css
+# Rule to build HTML from markdown using Marp and place in build/html/
+$(BUILDDIR)/html/nczarr_viewer_presentation.html: nczarr_viewer_presentation.md
+	marp $< --html --output-dir $(BUILDDIR)/html/
+
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+# Exclude our custom presentation targets from this catch-all
 %: Makefile
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@if [ "$@" != "nczarr_viewer_presentation.md" ] && [ "$@" != "presentationhtml" ] && [ "$@" != "presentationpdf" ]; then \
+		$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O); \
+	fi
+	mkdir -p $(BUILDDIR)/html/
 	touch $(BUILDDIR)/html/.nojekyll
 clean:
 	rm -rf $(BUILDDIR)/*
